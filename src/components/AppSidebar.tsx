@@ -1,4 +1,4 @@
-import { Home, ClipboardList, Users, Wrench, LogOut } from "lucide-react";
+import { Home, ClipboardList, Users, Wrench, LogOut, FileText, Bot, Settings } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   Sidebar,
@@ -19,8 +19,11 @@ import { Button } from "@/components/ui/button";
 const menuItems = [
   { title: "Tableau de bord", url: "/", icon: Home },
   { title: "Interventions", url: "/interventions", icon: ClipboardList },
+  { title: "Devis", url: "/devis", icon: FileText },
   { title: "Clients", url: "/clients", icon: Users },
   { title: "Techniciens", url: "/techniciens", icon: Wrench },
+  { title: "Assistant IA", url: "/assistant", icon: Bot },
+  { title: "Paramètres", url: "/settings", icon: Settings },
 ];
 
 export function AppSidebar() {

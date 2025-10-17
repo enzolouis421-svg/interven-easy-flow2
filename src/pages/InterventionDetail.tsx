@@ -223,6 +223,36 @@ export default function InterventionDetail() {
     }
   };
 
+  const generatePDF = async () => {
+    if (!id || id === "new") {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Veuillez d'abord enregistrer l'intervention",
+      });
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-pdf", {
+        body: { type: "intervention", id },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "PDF généré",
+        description: "Le rapport PDF a été généré avec succès",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: error.message,
+      });
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-4xl">
       <div className="flex items-center gap-4">
