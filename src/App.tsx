@@ -5,14 +5,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { DashboardLayout } from "./components/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
-import Interventions from "./pages/Interventions";
 import InterventionDetail from "./pages/InterventionDetail";
-import Devis from "./pages/Devis";
-import DevisDetail from "./pages/DevisDetail";
 import Clients from "./pages/Clients";
 import Techniciens from "./pages/Techniciens";
 import AssistantAI from "./pages/AssistantAI";
 import Settings from "./pages/Settings";
+import DevisDetail from "./pages/DevisDetail";
+import InterventionsDevis from "./pages/InterventionsDevis";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -35,10 +34,10 @@ const App = () => (
             }
           />
           <Route
-            path="/interventions"
+            path="/interventions-devis"
             element={
               <DashboardLayout>
-                <Interventions />
+                <InterventionsDevis />
               </DashboardLayout>
             }
           />
@@ -47,14 +46,6 @@ const App = () => (
             element={
               <DashboardLayout>
                 <InterventionDetail />
-              </DashboardLayout>
-            }
-          />
-          <Route
-            path="/devis"
-            element={
-              <DashboardLayout>
-                <Devis />
               </DashboardLayout>
             }
           />

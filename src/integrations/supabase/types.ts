@@ -113,60 +113,66 @@ export type Database = {
       devis: {
         Row: {
           client_id: string
-          conditions: string | null
+          client_nom: string | null
+          conditions_paiement: string | null
           created_at: string
-          date_devis: string
-          date_validite: string | null
+          date_creation: string
+          delai_realisation: string | null
           id: string
-          lignes: Json
+          lignes_prestation: Json
+          montant: number
           notes: string | null
-          numero_devis: string
-          pdf_url: string | null
-          signature_url: string | null
+          pret_envoi: boolean
+          reference: string
           statut: string
           total_ht: number
           total_ttc: number
-          tva: number
+          total_tva: number
           updated_at: string
           user_id: string
+          validite_jours: number
         }
         Insert: {
           client_id: string
-          conditions?: string | null
+          client_nom?: string | null
+          conditions_paiement?: string | null
           created_at?: string
-          date_devis?: string
-          date_validite?: string | null
+          date_creation?: string
+          delai_realisation?: string | null
           id?: string
-          lignes?: Json
+          lignes_prestation?: Json
+          montant?: number
           notes?: string | null
-          numero_devis: string
-          pdf_url?: string | null
-          signature_url?: string | null
+          pret_envoi?: boolean
+          reference?: string
           statut?: string
           total_ht?: number
           total_ttc?: number
-          tva?: number
+          total_tva?: number
           updated_at?: string
           user_id: string
+          validite_jours?: number
         }
         Update: {
           client_id?: string
-          conditions?: string | null
+          client_nom?: string | null
+          conditions_paiement?: string | null
           created_at?: string
-          date_devis?: string
-          date_validite?: string | null
+          date_creation?: string
+          delai_realisation?: string | null
           id?: string
-          lignes?: Json
+          lignes_prestation?: Json
+          montant?: number
           notes?: string | null
-          numero_devis?: string
-          pdf_url?: string | null
-          signature_url?: string | null
+          pret_envoi?: boolean
+          reference?: string
           statut?: string
           total_ht?: number
           total_ttc?: number
-          tva?: number
+          total_tva?: number
           updated_at?: string
           user_id?: string
+          validite_jours?: number
         }
         Relationships: [
           {

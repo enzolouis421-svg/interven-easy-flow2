@@ -18,8 +18,7 @@ import { Button } from "@/components/ui/button";
 
 const menuItems = [
   { title: "Tableau de bord", url: "/", icon: Home },
-  { title: "Interventions", url: "/interventions", icon: ClipboardList },
-  { title: "Devis", url: "/devis", icon: FileText },
+  { title: "Interventions & Devis", url: "/interventions-devis", icon: ClipboardList },
   { title: "Clients", url: "/clients", icon: Users },
   { title: "Techniciens", url: "/techniciens", icon: Wrench },
   { title: "Assistant IA", url: "/assistant", icon: Bot },
