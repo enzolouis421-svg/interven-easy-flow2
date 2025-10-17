@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Mail, Phone, MapPin, Trash2 } from "lucide-react";
+import { Plus, Mail, Phone, MapPin, Trash2, Edit } from "lucide-react";
 
 interface Client {
   id: string;
@@ -21,6 +21,7 @@ interface Client {
 export default function Clients() {
   const [clients, setClients] = useState<Client[]>([]);
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     nom: "",
     prenom: "",
@@ -50,38 +51,73 @@ export default function Clients() {
     }
   };
 
+  const handleEdit = (client: Client) => {
+    setEditingId(client.id);
+    setFormData({
+      nom: client.nom,
+      prenom: client.prenom || "",
+      entreprise: client.entreprise || "",
+      email: client.email || "",
+      telephone: client.telephone || "",
+      adresse: client.adresse || "",
+    });
+    setOpen(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { error } = await supabase.from("clients").insert({
-      ...formData,
-      user_id: user.id,
-    });
+    if (editingId) {
+      const { error } = await supabase
+        .from("clients")
+        .update(formData)
+        .eq("id", editingId);
 
-    if (error) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: error.message,
-      });
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: error.message,
+        });
+      } else {
+        toast({
+          title: "Client modifié",
+          description: "Le client a été modifié avec succès.",
+        });
+      }
     } else {
-      toast({
-        title: "Client ajouté",
-        description: "Le client a été ajouté avec succès.",
+      const { error } = await supabase.from("clients").insert({
+        ...formData,
+        user_id: user.id,
       });
-      setOpen(false);
-      setFormData({
-        nom: "",
-        prenom: "",
-        entreprise: "",
-        email: "",
-        telephone: "",
-        adresse: "",
-      });
-      loadClients();
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: error.message,
+        });
+      } else {
+        toast({
+          title: "Client ajouté",
+          description: "Le client a été ajouté avec succès.",
+        });
+      }
     }
+
+    setOpen(false);
+    setEditingId(null);
+    setFormData({
+      nom: "",
+      prenom: "",
+      entreprise: "",
+      email: "",
+      telephone: "",
+      adresse: "",
+    });
+    loadClients();
   };
 
   const handleDelete = async (id: string) => {
@@ -106,7 +142,20 @@ export default function Clients() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Clients</h1>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={(isOpen) => {
+          setOpen(isOpen);
+          if (!isOpen) {
+            setEditingId(null);
+            setFormData({
+              nom: "",
+              prenom: "",
+              entreprise: "",
+              email: "",
+              telephone: "",
+              adresse: "",
+            });
+          }
+        }}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -115,7 +164,9 @@ export default function Clients() {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Ajouter un client</DialogTitle>
+              <DialogTitle>
+                {editingId ? "Modifier le client" : "Ajouter un client"}
+              </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -184,7 +235,7 @@ export default function Clients() {
                 />
               </div>
               <Button type="submit" className="w-full">
-                Ajouter
+                {editingId ? "Modifier" : "Ajouter"}
               </Button>
             </form>
           </DialogContent>
@@ -199,13 +250,22 @@ export default function Clients() {
                 <CardTitle className="text-lg">
                   {client.prenom} {client.nom}
                 </CardTitle>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleDelete(client.id)}
-                >
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleEdit(client)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDelete(client.id)}
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
               </div>
               {client.entreprise && (
                 <p className="text-sm text-muted-foreground">

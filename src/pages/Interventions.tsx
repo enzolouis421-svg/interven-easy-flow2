@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Plus, MapPin, Calendar, Users } from "lucide-react";
+import { Plus, MapPin, Calendar, Users, Trash2, Eye } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Intervention {
   id: string;
@@ -28,6 +29,7 @@ export default function Interventions() {
   const [interventions, setInterventions] = useState<Intervention[]>([]);
   const [filter, setFilter] = useState<"all" | "a_faire" | "en_cours" | "termine">("all");
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     loadInterventions();
@@ -45,6 +47,24 @@ export default function Interventions() {
 
     if (!error && data) {
       setInterventions(data);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    const { error } = await supabase.from("interventions").delete().eq("id", id);
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: error.message,
+      });
+    } else {
+      toast({
+        title: "Intervention supprimée",
+        description: "L'intervention a été supprimée avec succès.",
+      });
+      loadInterventions();
     }
   };
 
@@ -93,15 +113,33 @@ export default function Interventions() {
         {filteredInterventions.map((intervention) => (
           <Card
             key={intervention.id}
-            className="cursor-pointer hover:shadow-lg transition-shadow"
-            onClick={() => navigate(`/interventions/${intervention.id}`)}
+            className="hover:shadow-lg transition-shadow"
           >
             <CardHeader>
               <div className="flex items-start justify-between">
                 <CardTitle className="text-lg">{intervention.titre}</CardTitle>
-                <Badge className={statusConfig[intervention.statut].variant}>
-                  {statusConfig[intervention.statut].label}
-                </Badge>
+                <div className="flex gap-2 items-center">
+                  <Badge className={statusConfig[intervention.statut].variant}>
+                    {statusConfig[intervention.statut].label}
+                  </Badge>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => navigate(`/interventions/${intervention.id}`)}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(intervention.id);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-2">

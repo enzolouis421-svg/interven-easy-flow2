@@ -62,6 +62,122 @@ export type Database = {
         }
         Relationships: []
       }
+      company_settings: {
+        Row: {
+          adresse: string | null
+          code_postal: string | null
+          conditions_generales: string | null
+          created_at: string
+          email: string | null
+          id: string
+          logo_url: string | null
+          nom_entreprise: string
+          siret: string | null
+          telephone: string | null
+          updated_at: string
+          user_id: string
+          ville: string | null
+        }
+        Insert: {
+          adresse?: string | null
+          code_postal?: string | null
+          conditions_generales?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          logo_url?: string | null
+          nom_entreprise: string
+          siret?: string | null
+          telephone?: string | null
+          updated_at?: string
+          user_id: string
+          ville?: string | null
+        }
+        Update: {
+          adresse?: string | null
+          code_postal?: string | null
+          conditions_generales?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          logo_url?: string | null
+          nom_entreprise?: string
+          siret?: string | null
+          telephone?: string | null
+          updated_at?: string
+          user_id?: string
+          ville?: string | null
+        }
+        Relationships: []
+      }
+      devis: {
+        Row: {
+          client_id: string
+          conditions: string | null
+          created_at: string
+          date_devis: string
+          date_validite: string | null
+          id: string
+          lignes: Json
+          notes: string | null
+          numero_devis: string
+          pdf_url: string | null
+          signature_url: string | null
+          statut: string
+          total_ht: number
+          total_ttc: number
+          tva: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_id: string
+          conditions?: string | null
+          created_at?: string
+          date_devis?: string
+          date_validite?: string | null
+          id?: string
+          lignes?: Json
+          notes?: string | null
+          numero_devis: string
+          pdf_url?: string | null
+          signature_url?: string | null
+          statut?: string
+          total_ht?: number
+          total_ttc?: number
+          tva?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string
+          conditions?: string | null
+          created_at?: string
+          date_devis?: string
+          date_validite?: string | null
+          id?: string
+          lignes?: Json
+          notes?: string | null
+          numero_devis?: string
+          pdf_url?: string | null
+          signature_url?: string | null
+          statut?: string
+          total_ht?: number
+          total_ttc?: number
+          tva?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "devis_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interventions: {
         Row: {
           adresse: string | null

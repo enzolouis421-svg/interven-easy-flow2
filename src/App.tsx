@@ -7,8 +7,12 @@ import { DashboardLayout } from "./components/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
 import Interventions from "./pages/Interventions";
 import InterventionDetail from "./pages/InterventionDetail";
+import Devis from "./pages/Devis";
+import DevisDetail from "./pages/DevisDetail";
 import Clients from "./pages/Clients";
 import Techniciens from "./pages/Techniciens";
+import AssistantAI from "./pages/AssistantAI";
+import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -47,10 +51,42 @@ const App = () => (
             }
           />
           <Route
+            path="/devis"
+            element={
+              <DashboardLayout>
+                <Devis />
+              </DashboardLayout>
+            }
+          />
+          <Route
+            path="/devis/:id"
+            element={
+              <DashboardLayout>
+                <DevisDetail />
+              </DashboardLayout>
+            }
+          />
+          <Route
             path="/clients"
             element={
               <DashboardLayout>
                 <Clients />
+              </DashboardLayout>
+            }
+          />
+          <Route
+            path="/assistant"
+            element={
+              <DashboardLayout>
+                <AssistantAI />
+              </DashboardLayout>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <DashboardLayout>
+                <Settings />
               </DashboardLayout>
             }
           />
