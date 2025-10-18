@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
+import Footer from "./Footer";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -59,6 +60,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <SidebarTrigger />
           </header>
           <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
+          <Footer />
         </div>
       </div>
     </SidebarProvider>

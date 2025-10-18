@@ -234,21 +234,23 @@ export default function InterventionsDevis() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {showInterventions &&
           filteredInterventions.map((intervention) => (
-            <Card key={intervention.id} className="hover:shadow-lg transition-shadow">
+            <Card key={intervention.id} className="card-hover border-l-4 border-l-primary">
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <CardTitle className="text-lg">{intervention.titre}</CardTitle>
+                    <CardTitle className="text-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                      {intervention.titre}
+                    </CardTitle>
                     <Badge className="mt-2" variant={interventionStatusConfig[intervention.statut as keyof typeof interventionStatusConfig]?.variant}>
                       {interventionStatusConfig[intervention.statut as keyof typeof interventionStatusConfig]?.label}
                     </Badge>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => navigate(`/interventions/${intervention.id}`)}>
+                    <Button variant="ghost" size="icon" onClick={() => navigate(`/interventions/${intervention.id}`)} className="hover:bg-primary/10 hover:text-primary">
                       <Eye className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDeleteIntervention(intervention.id)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
+                    <Button variant="ghost" size="icon" onClick={() => handleDeleteIntervention(intervention.id)} className="hover:bg-destructive/10 hover:text-destructive">
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
@@ -258,16 +260,16 @@ export default function InterventionsDevis() {
                   <p className="text-sm text-muted-foreground line-clamp-2">{intervention.description}</p>
                 )}
                 {intervention.clients && (
-                  <div className="text-sm">
-                    Client: {intervention.clients.entreprise || `${intervention.clients.prenom} ${intervention.clients.nom}`}
+                  <div className="text-sm font-medium">
+                    {intervention.clients.entreprise || `${intervention.clients.prenom} ${intervention.clients.nom}`}
                   </div>
                 )}
                 {intervention.adresse && (
                   <div className="text-sm text-muted-foreground">{intervention.adresse}</div>
                 )}
                 {intervention.date_intervention && (
-                  <div className="text-sm">
-                    Date: {format(new Date(intervention.date_intervention), "PPP", { locale: fr })}
+                  <div className="text-sm text-muted-foreground">
+                    {format(new Date(intervention.date_intervention), "PPP", { locale: fr })}
                   </div>
                 )}
               </CardContent>
@@ -276,42 +278,44 @@ export default function InterventionsDevis() {
 
         {showDevis &&
           filteredDevis.map((d) => (
-            <Card key={d.id} className="hover:shadow-lg transition-shadow">
+            <Card key={d.id} className="card-hover border-l-4 border-l-secondary">
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <CardTitle className="text-lg">Devis {d.reference}</CardTitle>
-                    <div className="flex gap-2 mt-2">
+                    <CardTitle className="text-lg bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent">
+                      {d.reference}
+                    </CardTitle>
+                    <div className="flex gap-2 mt-2 flex-wrap">
                       <Badge variant={devisStatusConfig[d.statut as keyof typeof devisStatusConfig]?.variant}>
                         {devisStatusConfig[d.statut as keyof typeof devisStatusConfig]?.label}
                       </Badge>
-                      {d.pret_envoi && <Badge variant="default">Prêt</Badge>}
+                      {d.pret_envoi && <Badge variant="default" className="bg-accent">Prêt</Badge>}
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => navigate(`/devis/${d.id}`)}>
+                    <Button variant="ghost" size="icon" onClick={() => navigate(`/devis/${d.id}`)} className="hover:bg-secondary/10 hover:text-secondary">
                       <Eye className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDownloadDevisPDF(d.id)}>
+                    <Button variant="ghost" size="icon" onClick={() => handleDownloadDevisPDF(d.id)} className="hover:bg-accent/10 hover:text-accent">
                       <Download className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDeleteDevis(d.id)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
+                    <Button variant="ghost" size="icon" onClick={() => handleDeleteDevis(d.id)} className="hover:bg-destructive/10 hover:text-destructive">
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-2">
                 {d.clients && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <FileText className="h-4 w-4 text-secondary" />
                     <span>{d.clients.entreprise || `${d.clients.prenom} ${d.clients.nom}`}</span>
                   </div>
                 )}
-                <div className="text-sm">
-                  Date: {format(new Date(d.date_creation), "PPP", { locale: fr })}
+                <div className="text-sm text-muted-foreground">
+                  {format(new Date(d.date_creation), "PPP", { locale: fr })}
                 </div>
-                <div className="text-lg font-bold text-primary">
+                <div className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                   {parseFloat(String(d.total_ttc)).toFixed(2)} € TTC
                 </div>
               </CardContent>

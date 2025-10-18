@@ -45,6 +45,17 @@ serve(async (req) => {
       
       data = result.data;
       error = result.error;
+
+      // Récupérer les paramètres entreprise
+      if (data && data.user_id) {
+        const { data: companyData } = await supabase
+          .from('company_settings')
+          .select('*')
+          .eq('user_id', data.user_id)
+          .single();
+        
+        data.company_settings = companyData;
+      }
     }
 
     if (error) throw error;
@@ -140,7 +151,12 @@ function generateInterventionHTML(data: any) {
 }
 
 function generateDevisHTML(data: any) {
-  const lignes = JSON.parse(data.lignes || '[]');
+  const lignes = typeof data.lignes_prestation === 'string' 
+    ? JSON.parse(data.lignes_prestation) 
+    : (data.lignes_prestation || []);
+  
+  const validiteDate = new Date(data.date_creation);
+  validiteDate.setDate(validiteDate.getDate() + (data.validite_jours || 30));
   
   return `
     <!DOCTYPE html>
@@ -148,82 +164,232 @@ function generateDevisHTML(data: any) {
     <head>
       <meta charset="UTF-8">
       <style>
-        body { font-family: Arial, sans-serif; padding: 40px; }
-        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
-        .section { margin: 20px 0; }
-        .label { font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        th { background-color: #f4f4f4; }
-        .total-section { text-align: right; margin-top: 20px; }
-        .total-line { margin: 5px 0; }
-        .grand-total { font-size: 1.2em; font-weight: bold; }
+        body { 
+          font-family: Arial, sans-serif; 
+          padding: 30px; 
+          color: #111827;
+          font-size: 10px;
+        }
+        .header { 
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 30px;
+          border-bottom: 3px solid #2563eb;
+          padding-bottom: 20px;
+        }
+        .company-info {
+          flex: 1;
+        }
+        .company-name {
+          font-size: 16px;
+          font-weight: bold;
+          color: #2563eb;
+          margin-bottom: 8px;
+        }
+        .devis-title {
+          text-align: right;
+          flex: 1;
+        }
+        .devis-title h1 {
+          font-size: 28px;
+          color: #2563eb;
+          margin: 0 0 8px 0;
+        }
+        .reference {
+          font-size: 13px;
+          color: #6b7280;
+        }
+        .separator {
+          height: 2px;
+          background: #e5e7eb;
+          margin: 25px 0;
+        }
+        .client-block {
+          background: #f9fafb;
+          padding: 12px;
+          border-radius: 8px;
+          margin-bottom: 25px;
+        }
+        .client-block h3 {
+          font-size: 12px;
+          color: #2563eb;
+          margin: 0 0 8px 0;
+        }
+        table { 
+          width: 100%; 
+          border-collapse: collapse; 
+          margin: 20px 0;
+        }
+        th { 
+          background: #f3f4f6;
+          padding: 12px 8px;
+          text-align: left;
+          font-size: 11px;
+          font-weight: bold;
+          color: #374151;
+          border: 1px solid #e5e7eb;
+        }
+        td { 
+          border: 1px solid #e5e7eb; 
+          padding: 8px; 
+          font-size: 10px;
+        }
+        .total-section { 
+          text-align: right; 
+          margin-top: 25px;
+          padding-right: 8px;
+        }
+        .total-line { 
+          margin: 5px 0;
+          font-size: 11px;
+        }
+        .grand-total { 
+          font-size: 16px; 
+          font-weight: bold;
+          color: #2563eb;
+          margin-top: 10px;
+        }
+        .conditions-section {
+          margin-top: 30px;
+          font-size: 10px;
+        }
+        .conditions-section h3 {
+          font-size: 12px;
+          color: #374151;
+          margin-bottom: 8px;
+        }
+        .notes-block {
+          background: #f9fafb;
+          padding: 12px;
+          border-radius: 8px;
+          margin-top: 15px;
+        }
+        .signatures {
+          display: flex;
+          justify-content: space-between;
+          margin-top: 50px;
+          padding-top: 30px;
+          border-top: 2px solid #e5e7eb;
+        }
+        .signature-box {
+          flex: 1;
+          text-align: center;
+        }
+        .signature-box h4 {
+          font-size: 11px;
+          margin-bottom: 40px;
+          color: #6b7280;
+        }
+        .signature-line {
+          border-bottom: 1px solid #374151;
+          width: 200px;
+          margin: 0 auto 8px auto;
+        }
+        .signature-label {
+          font-size: 9px;
+          color: #6b7280;
+        }
+        .bon-pour-accord {
+          text-align: center;
+          margin-top: 30px;
+          font-style: italic;
+          font-weight: bold;
+          font-size: 11px;
+          color: #374151;
+        }
       </style>
     </head>
     <body>
       <div class="header">
-        <h1>DEVIS</h1>
-        <p>N° ${data.numero_devis}</p>
-        <p>Date: ${new Date(data.date_devis).toLocaleDateString('fr-FR')}</p>
-        ${data.date_validite ? `<p>Valide jusqu'au: ${new Date(data.date_validite).toLocaleDateString('fr-FR')}</p>` : ''}
+        <div class="company-info">
+          <div class="company-name">${data.company_settings?.nom_entreprise || 'Votre Entreprise'}</div>
+          <div>${data.company_settings?.siret ? 'SIRET: ' + data.company_settings.siret : ''}</div>
+          <div>${data.company_settings?.adresse || ''}</div>
+          <div>${data.company_settings?.code_postal || ''} ${data.company_settings?.ville || ''}</div>
+          <div>${data.company_settings?.telephone || ''}</div>
+          <div>${data.company_settings?.email || ''}</div>
+        </div>
+        <div class="devis-title">
+          <h1>DEVIS</h1>
+          <div class="reference">Réf: ${data.reference}</div>
+          <div class="reference">Date: ${new Date(data.date_creation).toLocaleDateString('fr-FR')}</div>
+        </div>
       </div>
-      
-      <div class="section">
-        <h2>Client</h2>
-        <p><strong>${data.clients?.entreprise || ''}</strong></p>
-        <p>${data.clients?.prenom} ${data.clients?.nom}</p>
-        <p>${data.clients?.email || ''}</p>
-        <p>${data.clients?.telephone || ''}</p>
-        <p>${data.clients?.adresse || ''}</p>
+
+      <div class="separator"></div>
+
+      <div class="client-block">
+        <h3>CLIENT</h3>
+        ${data.clients?.entreprise ? `<div><strong>${data.clients.entreprise}</strong></div>` : ''}
+        <div>${data.clients?.prenom || ''} ${data.clients?.nom || ''}</div>
+        <div>${data.clients?.email || ''}</div>
+        <div>${data.clients?.telephone || ''}</div>
+        <div>${data.clients?.adresse || ''}</div>
       </div>
-      
+
+      <div class="separator"></div>
+
       <table>
         <thead>
           <tr>
-            <th>Description</th>
-            <th>Quantité</th>
-            <th>Prix Unitaire HT</th>
-            <th>Total HT</th>
+            <th style="width: 45%">Description</th>
+            <th style="width: 10%; text-align: center">Qté</th>
+            <th style="width: 15%; text-align: right">Prix unit. HT</th>
+            <th style="width: 10%; text-align: center">TVA</th>
+            <th style="width: 20%; text-align: right">Total HT</th>
           </tr>
         </thead>
         <tbody>
           ${lignes.map((ligne: any) => `
             <tr>
               <td>${ligne.description}</td>
-              <td>${ligne.quantite}</td>
-              <td>${parseFloat(ligne.prix_unitaire).toFixed(2)} €</td>
-              <td>${(ligne.quantite * parseFloat(ligne.prix_unitaire)).toFixed(2)} €</td>
+              <td style="text-align: center">${ligne.quantite}</td>
+              <td style="text-align: right">${parseFloat(ligne.prix_unitaire).toFixed(2)} €</td>
+              <td style="text-align: center">${ligne.tva}%</td>
+              <td style="text-align: right">${(ligne.quantite * parseFloat(ligne.prix_unitaire)).toFixed(2)} €</td>
             </tr>
           `).join('')}
         </tbody>
       </table>
-      
+
       <div class="total-section">
-        <div class="total-line">Total HT: ${parseFloat(data.total_ht).toFixed(2)} €</div>
-        <div class="total-line">TVA (${data.tva}%): ${(parseFloat(data.total_ht) * parseFloat(data.tva) / 100).toFixed(2)} €</div>
-        <div class="total-line grand-total">Total TTC: ${parseFloat(data.total_ttc).toFixed(2)} €</div>
+        <div class="total-line">Total HT: ${parseFloat(data.total_ht || 0).toFixed(2)} €</div>
+        <div class="total-line">Total TVA: ${parseFloat(data.total_tva || 0).toFixed(2)} €</div>
+        <div class="total-line grand-total">TOTAL TTC: ${parseFloat(data.total_ttc || 0).toFixed(2)} €</div>
       </div>
-      
-      ${data.conditions ? `
-      <div class="section">
-        <h3>Conditions</h3>
-        <p>${data.conditions}</p>
+
+      <div class="separator"></div>
+
+      <div class="conditions-section">
+        <h3>Conditions et validité</h3>
+        <div><strong>Validité du devis:</strong> ${data.validite_jours || 30} jours (jusqu'au ${validiteDate.toLocaleDateString('fr-FR')})</div>
+        <div><strong>Conditions de paiement:</strong> ${data.conditions_paiement || 'Paiement à réception de facture'}</div>
+        ${data.delai_realisation ? `<div><strong>Délai de réalisation:</strong> ${data.delai_realisation}</div>` : ''}
+        
+        ${data.notes ? `
+        <div class="notes-block">
+          <strong>Notes:</strong><br/>
+          ${data.notes}
+        </div>
+        ` : ''}
       </div>
-      ` : ''}
-      
-      ${data.notes ? `
-      <div class="section">
-        <h3>Notes</h3>
-        <p>${data.notes}</p>
+
+      <div class="signatures">
+        <div class="signature-box">
+          <h4>Signature de l'entreprise</h4>
+          <div class="signature-line"></div>
+          <div class="signature-label">${data.company_settings?.nom_entreprise || 'Votre Entreprise'}</div>
+        </div>
+        <div class="signature-box">
+          <h4>Signature du client</h4>
+          <div class="signature-line"></div>
+          <div class="signature-label">${data.client_nom || 'Client'}</div>
+        </div>
       </div>
-      ` : ''}
-      
-      ${data.signature_url ? `
-      <div class="section">
-        <h3>Signature du client</h3>
-        <img src="${data.signature_url}" style="max-width: 300px;" />
+
+      <div class="bon-pour-accord">
+        Bon pour accord
       </div>
-      ` : ''}
     </body>
     </html>
   `;
