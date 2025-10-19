@@ -41,28 +41,64 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon" className="border-r">
-      <SidebarContent>
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-gradient-to-b from-sidebar to-sidebar/95">
+      <SidebarContent className="pt-4">
         <SidebarGroup>
-          <SidebarGroupLabel>
-            {collapsed ? "IG" : "IntervenGo"}
+          <SidebarGroupLabel className="px-4 mb-4">
+            {collapsed ? (
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary via-violet to-indigo flex items-center justify-center text-white font-bold text-sm">
+                IG
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary via-violet to-indigo flex items-center justify-center text-white font-bold shadow-elegant">
+                  IG
+                </div>
+                <span className="text-xl font-bold bg-gradient-to-r from-primary to-violet bg-clip-text text-transparent">
+                  IntervenGo
+                </span>
+              </div>
+            )}
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {menuItems.map((item) => (
+            <SidebarMenu className="space-y-2 px-3">
+              {menuItems.map((item, index) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink
                       to={item.url}
                       end={item.url === "/"}
                       className={({ isActive }) =>
-                        isActive
-                          ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                          : ""
+                        `group relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 ${
+                          isActive
+                            ? "bg-gradient-to-r from-primary/20 to-violet/20 text-primary shadow-glow-sm border border-primary/30"
+                            : "hover:bg-sidebar-accent/50 text-sidebar-foreground/70 hover:text-sidebar-foreground"
+                        }`
                       }
+                      style={{ animationDelay: `${index * 50}ms` }}
                     >
-                      <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
+                      {({ isActive }) => (
+                        <>
+                          <div className={`relative ${isActive ? 'animate-float' : ''}`}>
+                            <item.icon className={`h-5 w-5 transition-all duration-300 ${
+                              isActive ? 'text-primary' : 'group-hover:scale-110'
+                            }`} />
+                            {isActive && (
+                              <div className="absolute inset-0 bg-primary/20 blur-lg rounded-full animate-pulse" />
+                            )}
+                          </div>
+                          {!collapsed && (
+                            <span className={`font-medium transition-all duration-300 ${
+                              isActive ? 'text-primary' : ''
+                            }`}>
+                              {item.title}
+                            </span>
+                          )}
+                          {isActive && !collapsed && (
+                            <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                          )}
+                        </>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -71,16 +107,16 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="p-3 border-t border-sidebar-border/50">
         <SidebarMenu>
           <SidebarMenuItem>
             <Button
               variant="ghost"
               onClick={handleLogout}
-              className="w-full justify-start"
+              className="w-full justify-start gap-3 px-3 py-2.5 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-all duration-300 group"
             >
-              <LogOut className="h-4 w-4" />
-              {!collapsed && <span>Déconnexion</span>}
+              <LogOut className="h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
+              {!collapsed && <span className="font-medium">Déconnexion</span>}
             </Button>
           </SidebarMenuItem>
         </SidebarMenu>
