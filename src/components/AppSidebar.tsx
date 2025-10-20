@@ -41,20 +41,20 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-gradient-to-b from-sidebar to-sidebar/95">
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-gradient-to-b from-sidebar via-sidebar/98 to-sidebar/95">
       <SidebarContent className="pt-4">
         <SidebarGroup>
           <SidebarGroupLabel className="px-4 mb-4">
             {collapsed ? (
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary via-violet to-indigo flex items-center justify-center text-white font-bold text-sm">
+              <div className="w-8 h-8 rounded-xl gradient-primary flex items-center justify-center text-primary-foreground font-bold text-sm shadow-glow">
                 IG
               </div>
             ) : (
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary via-violet to-indigo flex items-center justify-center text-white font-bold shadow-elegant">
+                <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center text-primary-foreground font-bold shadow-glow">
                   IG
                 </div>
-                <span className="text-xl font-bold bg-gradient-to-r from-primary to-violet bg-clip-text text-transparent">
+                <span className="text-xl font-bold text-gradient">
                   IntervenGo
                 </span>
               </div>
@@ -71,8 +71,8 @@ export function AppSidebar() {
                       className={({ isActive }) =>
                         `group relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 ${
                           isActive
-                            ? "bg-gradient-to-r from-primary/20 to-violet/20 text-primary shadow-glow-sm border border-primary/30"
-                            : "hover:bg-sidebar-accent/50 text-sidebar-foreground/70 hover:text-sidebar-foreground"
+                            ? "bg-gradient-to-r from-primary/20 via-secondary/15 to-primary/20 text-primary shadow-glow border border-primary/30"
+                            : "hover:bg-sidebar-accent text-sidebar-foreground/70 hover:text-sidebar-foreground"
                         }`
                       }
                       style={{ animationDelay: `${index * 50}ms` }}

@@ -240,9 +240,23 @@ export default function InterventionDetail() {
 
       if (error) throw error;
 
+      // Ouvrir le HTML dans une nouvelle fenêtre pour l'imprimer en PDF
+      if (data.html) {
+        const printWindow = window.open("", "_blank");
+        if (printWindow) {
+          printWindow.document.write(data.html);
+          printWindow.document.close();
+          
+          // Attendre que le contenu soit chargé avant d'ouvrir la boîte de dialogue d'impression
+          printWindow.onload = () => {
+            printWindow.print();
+          };
+        }
+      }
+
       toast({
         title: "PDF généré",
-        description: "Le rapport PDF a été généré avec succès",
+        description: "Fenêtre d'impression ouverte. Vous pouvez maintenant enregistrer en PDF.",
       });
     } catch (error: any) {
       toast({
@@ -463,10 +477,16 @@ export default function InterventionDetail() {
         </Card>
 
         <div className="flex gap-2 mt-6">
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" disabled={loading} className="btn-gradient">
             <Save className="h-4 w-4 mr-2" />
             {loading ? "Enregistrement..." : "Enregistrer"}
           </Button>
+          {id && id !== "new" && (
+            <Button type="button" variant="outline" onClick={generatePDF}>
+              <FileDown className="h-4 w-4 mr-2" />
+              Télécharger PDF
+            </Button>
+          )}
           <Button type="button" variant="outline" onClick={() => navigate("/interventions")}>
             Annuler
           </Button>
