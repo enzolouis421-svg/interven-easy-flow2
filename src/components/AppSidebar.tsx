@@ -42,7 +42,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-gradient-to-b from-sidebar via-sidebar/98 to-sidebar/95">
-      <SidebarContent className="pt-4">
+      <SidebarContent className="pt-4 pb-4">
         <SidebarGroup>
           <SidebarGroupLabel className="px-4 mb-4">
             {collapsed ? (
