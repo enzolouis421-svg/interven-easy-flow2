@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Upload, Save, FileDown, MapPin } from "lucide-react";
+import { ArrowLeft, Upload, Save, FileDown, MapPin, X } from "lucide-react";
 import SignatureCanvas from "react-signature-canvas";
 
 interface Client {
@@ -270,7 +270,7 @@ export default function InterventionDetail() {
   return (
     <div className="space-y-6 max-w-4xl">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/interventions")}>
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <h1 className="text-3xl font-bold">
@@ -442,12 +442,31 @@ export default function InterventionDetail() {
               {formData.photos.length > 0 && (
                 <div className="grid grid-cols-3 gap-2 mt-4">
                   {formData.photos.map((url, idx) => (
-                    <img
-                      key={idx}
-                      src={url}
-                      alt={`Photo ${idx + 1}`}
-                      className="rounded-lg object-cover aspect-square"
-                    />
+                    <div key={idx} className="relative group">
+                      <img
+                        src={url}
+                        alt={`Photo ${idx + 1}`}
+                        className="rounded-lg object-cover aspect-square w-full"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => {
+                          setFormData((prev) => ({
+                            ...prev,
+                            photos: prev.photos.filter((_, i) => i !== idx),
+                          }));
+                          toast({
+                            title: "Photo supprimée",
+                            description: "La photo a été supprimée",
+                          });
+                        }}
+                      >
+                        <Upload className="h-4 w-4 rotate-180" />
+                      </Button>
+                    </div>
                   ))}
                 </div>
               )}
@@ -487,7 +506,7 @@ export default function InterventionDetail() {
               Télécharger PDF
             </Button>
           )}
-          <Button type="button" variant="outline" onClick={() => navigate("/interventions")}>
+          <Button type="button" variant="outline" onClick={() => navigate(-1)}>
             Annuler
           </Button>
         </div>

@@ -8,11 +8,14 @@ import Dashboard from "./pages/Dashboard";
 import InterventionDetail from "./pages/InterventionDetail";
 import Clients from "./pages/Clients";
 import Techniciens from "./pages/Techniciens";
+import TechnicienProfile from "./pages/TechnicienProfile";
 import AssistantAI from "./pages/AssistantAI";
 import Settings from "./pages/Settings";
 import DevisDetail from "./pages/DevisDetail";
+import DevisPreview from "./pages/DevisPreview";
 import InterventionsDevis from "./pages/InterventionsDevis";
 import Auth from "./pages/Auth";
+import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,9 +27,10 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<Landing />} />
           <Route path="/auth" element={<Auth />} />
           <Route
-            path="/"
+            path="/dashboard"
             element={
               <DashboardLayout>
                 <Dashboard />
@@ -54,6 +58,14 @@ const App = () => (
             element={
               <DashboardLayout>
                 <DevisDetail />
+              </DashboardLayout>
+            }
+          />
+          <Route
+            path="/devis/preview/:id"
+            element={
+              <DashboardLayout>
+                <DevisPreview />
               </DashboardLayout>
             }
           />
@@ -86,6 +98,14 @@ const App = () => (
             element={
               <DashboardLayout>
                 <Techniciens />
+              </DashboardLayout>
+            }
+          />
+          <Route
+            path="/techniciens/:id"
+            element={
+              <DashboardLayout>
+                <TechnicienProfile />
               </DashboardLayout>
             }
           />

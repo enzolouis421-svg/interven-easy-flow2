@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 
 const menuItems = [
-  { title: "Tableau de bord", url: "/", icon: Home },
+  { title: "Tableau de bord", url: "/dashboard", icon: Home },
   { title: "Interventions & Devis", url: "/interventions-devis", icon: ClipboardList },
   { title: "Clients", url: "/clients", icon: Users },
   { title: "Techniciens", url: "/techniciens", icon: Wrench },
@@ -65,10 +65,10 @@ export function AppSidebar() {
               {menuItems.map((item, index) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.url}
-                      end={item.url === "/"}
-                      className={({ isActive }) =>
+                      <NavLink
+                        to={item.url}
+                        end={item.url === "/dashboard"}
+                        className={({ isActive }) =>
                         `group relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 ${
                           isActive
                             ? "bg-gradient-to-r from-primary/20 via-secondary/15 to-primary/20 text-primary shadow-glow border border-primary/30"

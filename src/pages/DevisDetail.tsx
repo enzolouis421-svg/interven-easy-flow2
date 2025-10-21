@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, FileText } from "lucide-react";
+import { Plus, Trash2, FileText, ArrowLeft } from "lucide-react";
 
 interface Client {
   id: string;
@@ -236,13 +236,13 @@ export default function DevisDetail() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
         <h1 className="text-3xl font-bold">
           {id === "new" ? "Nouveau devis" : "Modifier le devis"}
         </h1>
-        <Button variant="outline" onClick={() => navigate("/interventions-devis")}>
-          Retour
-        </Button>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -442,7 +442,7 @@ export default function DevisDetail() {
               Télécharger PDF
             </Button>
           )}
-          <Button type="button" variant="outline" onClick={() => navigate("/interventions-devis")}>
+          <Button type="button" variant="outline" onClick={() => navigate(-1)}>
             Annuler
           </Button>
         </div>

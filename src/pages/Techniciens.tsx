@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, Phone, Wrench, Edit, Trash2, Plus } from "lucide-react";
+import { Mail, Phone, Wrench, Edit, Trash2, Plus, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface Technicien {
   id: string;
@@ -24,6 +25,7 @@ export default function Techniciens() {
   const [editingTech, setEditingTech] = useState<Technicien | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   const [formData, setFormData] = useState({
     nom: "",
@@ -265,7 +267,10 @@ export default function Techniciens() {
           >
             <CardHeader>
               <div className="flex items-start justify-between gap-2">
-                <CardTitle className="text-lg break-words">
+                <CardTitle 
+                  className="text-lg break-words cursor-pointer hover:text-primary transition-colors"
+                  onClick={() => navigate(`/techniciens/${tech.id}`)}
+                >
                   {tech.prenom} {tech.nom}
                 </CardTitle>
                 <div className="flex gap-1 flex-shrink-0">
@@ -273,7 +278,17 @@ export default function Techniciens() {
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
+                    onClick={() => navigate(`/techniciens/${tech.id}`)}
+                    title="Voir le profil"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 hover:bg-secondary/10 hover:text-secondary"
                     onClick={() => handleEdit(tech)}
+                    title="Modifier"
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
@@ -282,6 +297,7 @@ export default function Techniciens() {
                     size="icon"
                     className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
                     onClick={() => setDeletingId(tech.id)}
+                    title="Supprimer"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
