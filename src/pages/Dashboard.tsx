@@ -140,12 +140,12 @@ export default function Dashboard() {
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="card-hover border-2">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
               <FileText className="h-5 w-5 text-primary" />
               Répartition des devis
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col items-center">
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -153,19 +153,42 @@ export default function Dashboard() {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, value }) => (value > 0 ? `${name}: ${value}` : "")}
-                  outerRadius={100}
+                  outerRadius={80}
+                  innerRadius={40}
                   fill="#8884d8"
                   dataKey="value"
+                  paddingAngle={2}
                 >
                   {devisChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={entry.color}
+                      className="transition-all duration-300 hover:opacity-80"
+                    />
                   ))}
                 </Pie>
-                <Tooltip />
-                <Legend />
+                <Tooltip 
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px',
+                  }}
+                />
               </PieChart>
             </ResponsiveContainer>
+            <div className="grid grid-cols-2 gap-3 mt-4 w-full">
+              {devisChartData.map((entry, index) => (
+                <div key={`legend-${index}`} className="flex items-center gap-2 text-sm">
+                  <div 
+                    className="w-3 h-3 rounded-full" 
+                    style={{ backgroundColor: entry.color }}
+                  />
+                  <span className="text-muted-foreground">
+                    {entry.name}: <span className="font-semibold text-foreground">{entry.value}</span>
+                  </span>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
 
