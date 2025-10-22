@@ -155,9 +155,9 @@ export default function Clients() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Clients</h1>
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 md:gap-4">
+        <h1 className="text-2xl md:text-3xl font-bold">Clients</h1>
         <Dialog open={open} onOpenChange={(isOpen) => {
           setOpen(isOpen);
           if (!isOpen) {
@@ -173,12 +173,12 @@ export default function Clients() {
           }
         }}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Nouveau client
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-[95vw] sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>
                 {editingId ? "Modifier le client" : "Ajouter un client"}
@@ -258,7 +258,7 @@ export default function Clients() {
         </Dialog>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {clients.map((client) => (
           <Card key={client.id}>
             <CardHeader>

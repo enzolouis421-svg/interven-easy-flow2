@@ -134,15 +134,15 @@ export default function Settings() {
   };
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Paramètres de l'entreprise</h1>
+    <div className="space-y-4 md:space-y-6 max-w-4xl mx-auto">
+      <h1 className="text-2xl md:text-3xl font-bold">Paramètres de l'entreprise</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
         <Card>
-          <CardHeader>
-            <CardTitle>Informations de l'entreprise</CardTitle>
+          <CardHeader className="p-4 md:p-6">
+            <CardTitle className="text-base md:text-lg">Informations de l'entreprise</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 p-4 md:p-6 pt-0">
             <div className="space-y-2">
               <Label htmlFor="nom_entreprise">Nom de l'entreprise *</Label>
               <Input
@@ -198,10 +198,10 @@ export default function Settings() {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Coordonnées</CardTitle>
+          <CardHeader className="p-4 md:p-6">
+            <CardTitle className="text-base md:text-lg">Coordonnées</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 p-4 md:p-6 pt-0">
             <div className="space-y-2">
               <Label htmlFor="adresse">Adresse</Label>
               <Input
@@ -213,7 +213,7 @@ export default function Settings() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               <div className="space-y-2">
                 <Label htmlFor="code_postal">Code postal</Label>
                 <Input
@@ -264,12 +264,12 @@ export default function Settings() {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Conditions générales</CardTitle>
+          <CardHeader className="p-4 md:p-6">
+            <CardTitle className="text-base md:text-lg">Conditions générales</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 md:p-6 pt-0">
             <div className="space-y-2">
-              <Label htmlFor="conditions_generales">
+              <Label htmlFor="conditions_generales" className="text-sm">
                 Conditions générales de vente
               </Label>
               <Textarea
@@ -282,13 +282,14 @@ export default function Settings() {
                   })
                 }
                 rows={6}
+                className="text-sm"
                 placeholder="Ces conditions seront automatiquement ajoutées à vos devis..."
               />
             </div>
           </CardContent>
         </Card>
 
-        <Button type="submit" disabled={loading}>
+        <Button type="submit" disabled={loading} className="w-full sm:w-auto">
           <Save className="h-4 w-4 mr-2" />
           Enregistrer les paramètres
         </Button>

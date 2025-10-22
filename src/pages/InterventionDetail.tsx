@@ -268,22 +268,22 @@ export default function InterventionDetail() {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+    <div className="space-y-4 md:space-y-6 max-w-4xl mx-auto">
+      <div className="flex items-center gap-3 md:gap-4">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="flex-shrink-0">
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-3xl font-bold">
+        <h1 className="text-xl md:text-3xl font-bold truncate">
           {id === "new" ? "Nouvelle intervention" : "Modifier l'intervention"}
         </h1>
       </div>
 
       <form onSubmit={handleSubmit}>
         <Card>
-          <CardHeader>
-            <CardTitle>Informations générales</CardTitle>
+          <CardHeader className="p-4 md:p-6">
+            <CardTitle className="text-base md:text-lg">Informations générales</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 p-4 md:p-6 pt-0">
             <div className="space-y-2">
               <Label htmlFor="titre">Titre *</Label>
               <Input
@@ -352,9 +352,9 @@ export default function InterventionDetail() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="date">Date et heure</Label>
+                <Label htmlFor="date" className="text-sm">Date et heure</Label>
                 <Input
                   id="date"
                   type="datetime-local"
@@ -365,18 +365,19 @@ export default function InterventionDetail() {
                       date_intervention: e.target.value,
                     })
                   }
+                  className="text-sm"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="statut">Statut</Label>
+                <Label htmlFor="statut" className="text-sm">Statut</Label>
                 <Select
                   value={formData.statut}
                   onValueChange={(value: any) =>
                     setFormData({ ...formData, statut: value })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -440,7 +441,7 @@ export default function InterventionDetail() {
                 </span>
               </div>
               {formData.photos.length > 0 && (
-                <div className="grid grid-cols-3 gap-2 mt-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 mt-4">
                   {formData.photos.map((url, idx) => (
                     <div key={idx} className="relative group">
                       <img
@@ -452,7 +453,7 @@ export default function InterventionDetail() {
                         type="button"
                         variant="destructive"
                         size="icon"
-                        className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute top-2 right-2 h-7 w-7 md:h-8 md:w-8 opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => {
                           setFormData((prev) => ({
                             ...prev,
@@ -464,7 +465,7 @@ export default function InterventionDetail() {
                           });
                         }}
                       >
-                        <Upload className="h-4 w-4 rotate-180" />
+                        <X className="h-3.5 w-3.5 md:h-4 md:w-4" />
                       </Button>
                     </div>
                   ))}
@@ -495,18 +496,19 @@ export default function InterventionDetail() {
           </CardContent>
         </Card>
 
-        <div className="flex gap-2 mt-6">
-          <Button type="submit" disabled={loading} className="btn-gradient">
+        <div className="flex flex-col sm:flex-row gap-2 mt-4 md:mt-6">
+          <Button type="submit" disabled={loading} className="btn-gradient flex-1 sm:flex-none">
             <Save className="h-4 w-4 mr-2" />
             {loading ? "Enregistrement..." : "Enregistrer"}
           </Button>
           {id && id !== "new" && (
-            <Button type="button" variant="outline" onClick={generatePDF}>
+            <Button type="button" variant="outline" onClick={generatePDF} className="flex-1 sm:flex-none">
               <FileDown className="h-4 w-4 mr-2" />
-              Télécharger PDF
+              <span className="hidden sm:inline">Télécharger PDF</span>
+              <span className="sm:hidden">PDF</span>
             </Button>
           )}
-          <Button type="button" variant="outline" onClick={() => navigate(-1)}>
+          <Button type="button" variant="outline" onClick={() => navigate(-1)} className="flex-1 sm:flex-none">
             Annuler
           </Button>
         </div>

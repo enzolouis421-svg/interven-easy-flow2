@@ -89,37 +89,40 @@ export default function Calendar() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6 animate-fade-in">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-bold text-gradient">Calendrier</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className="text-2xl md:text-4xl font-bold text-gradient">Calendrier</h1>
+          <p className="text-sm md:text-base text-muted-foreground mt-2">
             Semaine du {format(currentWeekStart, "d MMMM yyyy", { locale: fr })}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setCurrentWeekStart(addDays(currentWeekStart, -7))}
-            className="px-4 py-2 rounded-lg border-2 border-border hover:bg-primary/5 transition-colors"
+            className="px-3 md:px-4 py-2 text-sm md:text-base rounded-lg border-2 border-border hover:bg-primary/5 transition-colors"
           >
-            Semaine précédente
+            <span className="hidden sm:inline">Semaine précédente</span>
+            <span className="sm:hidden">Préc.</span>
           </button>
           <button
             onClick={() => setCurrentWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}
-            className="px-4 py-2 rounded-lg border-2 border-primary text-primary hover:bg-primary/10 transition-colors"
+            className="px-3 md:px-4 py-2 text-sm md:text-base rounded-lg border-2 border-primary text-primary hover:bg-primary/10 transition-colors"
           >
-            Cette semaine
+            <span className="hidden sm:inline">Cette semaine</span>
+            <span className="sm:hidden">Actuelle</span>
           </button>
           <button
             onClick={() => setCurrentWeekStart(addDays(currentWeekStart, 7))}
-            className="px-4 py-2 rounded-lg border-2 border-border hover:bg-primary/5 transition-colors"
+            className="px-3 md:px-4 py-2 text-sm md:text-base rounded-lg border-2 border-border hover:bg-primary/5 transition-colors"
           >
-            Semaine suivante
+            <span className="hidden sm:inline">Semaine suivante</span>
+            <span className="sm:hidden">Suiv.</span>
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3 md:gap-4">
         {weekDays.map((day, index) => {
           const dayInterventions = getInterventionsForDay(day);
           const isToday = isSameDay(day, new Date());
@@ -131,12 +134,12 @@ export default function Calendar() {
             >
               <CardHeader className={`pb-3 ${isToday ? "bg-primary/5" : ""}`}>
                 <CardTitle className="text-center">
-                  <div className="flex flex-col items-center gap-1">
-                    <span className="text-sm font-semibold text-muted-foreground uppercase">
-                      {format(day, "EEE", { locale: fr })}
+                  <div className="flex flex-col sm:flex-col items-center gap-1">
+                    <span className="text-xs md:text-sm font-semibold text-muted-foreground uppercase">
+                      {format(day, "EEEE", { locale: fr })}
                     </span>
-                    <span className={`text-2xl font-bold ${isToday ? "text-primary" : ""}`}>
-                      {format(day, "d")}
+                    <span className={`text-xl md:text-2xl font-bold ${isToday ? "text-primary" : ""}`}>
+                      {format(day, "d MMM", { locale: fr })}
                     </span>
                   </div>
                 </CardTitle>

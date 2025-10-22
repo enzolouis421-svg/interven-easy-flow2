@@ -304,23 +304,23 @@ export default function DevisDetail() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+    <div className="space-y-4 md:space-y-6 max-w-6xl mx-auto">
+      <div className="flex items-center gap-3 md:gap-4">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="flex-shrink-0">
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-3xl font-bold">
+        <h1 className="text-xl md:text-3xl font-bold truncate">
           {id === "new" ? "Nouveau devis" : "Modifier le devis"}
         </h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
         <Card>
-          <CardHeader>
-            <CardTitle>Informations générales</CardTitle>
+          <CardHeader className="p-4 md:p-6">
+            <CardTitle className="text-base md:text-lg">Informations générales</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+          <CardContent className="space-y-4 p-4 md:p-6 pt-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               <div>
                 <Label>Référence</Label>
                 <Input value={devis.reference} disabled />
@@ -393,74 +393,81 @@ export default function DevisDetail() {
         </Card>
 
         <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Lignes de prestation</CardTitle>
-              <Button type="button" onClick={addLigne}>
+          <CardHeader className="p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <CardTitle className="text-base md:text-lg">Lignes de prestation</CardTitle>
+              <Button type="button" onClick={addLigne} size="sm" className="w-full sm:w-auto">
                 <Plus className="h-4 w-4 mr-2" />
                 Ajouter une ligne
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+          <CardContent className="p-4 md:p-6 pt-0">
+            <div className="space-y-3 md:space-y-4">
               {devis.lignes_prestation.map((ligne, index) => (
-                <div key={ligne.id} className="grid grid-cols-12 gap-4 items-end p-4 border rounded">
-                  <div className="col-span-4">
-                    <Label>Description *</Label>
+                <div key={ligne.id} className="grid grid-cols-1 sm:grid-cols-12 gap-3 md:gap-4 items-end p-3 md:p-4 border rounded">
+                  <div className="sm:col-span-12">
+                    <Label className="text-sm">Description *</Label>
                     <Textarea
                       value={ligne.description}
                       onChange={(e) => updateLigne(index, "description", e.target.value)}
                       placeholder="Description de la prestation"
+                      rows={2}
+                      className="text-sm"
                       required
                     />
                   </div>
-                  <div className="col-span-2">
-                    <Label>Quantité *</Label>
+                  <div className="sm:col-span-3">
+                    <Label className="text-sm">Quantité *</Label>
                     <Input
                       type="number"
                       step="0.01"
                       min="0.01"
                       value={ligne.quantite}
                       onChange={(e) => updateLigne(index, "quantite", parseFloat(e.target.value))}
+                      className="text-sm"
                       required
                     />
                   </div>
-                  <div className="col-span-2">
-                    <Label>Prix unit. HT *</Label>
+                  <div className="sm:col-span-3">
+                    <Label className="text-sm">Prix unit. HT *</Label>
                     <Input
                       type="number"
                       step="0.01"
                       min="0"
                       value={ligne.prix_unitaire}
                       onChange={(e) => updateLigne(index, "prix_unitaire", parseFloat(e.target.value))}
+                      className="text-sm"
                       required
                     />
                   </div>
-                  <div className="col-span-1">
-                    <Label>TVA %</Label>
+                  <div className="sm:col-span-2">
+                    <Label className="text-sm">TVA %</Label>
                     <Input
                       type="number"
                       step="0.01"
                       min="0"
                       value={ligne.tva}
                       onChange={(e) => updateLigne(index, "tva", parseFloat(e.target.value))}
+                      className="text-sm"
                     />
                   </div>
-                  <div className="col-span-2">
-                    <Label>Total HT</Label>
+                  <div className="sm:col-span-3">
+                    <Label className="text-sm">Total HT</Label>
                     <Input
                       type="text"
                       value={(ligne.quantite * ligne.prix_unitaire).toFixed(2) + " €"}
+                      className="text-sm"
                       disabled
                     />
                   </div>
-                  <div className="col-span-1">
+                  <div className="sm:col-span-1 flex items-end">
                     <Button
                       type="button"
                       variant="destructive"
                       size="icon"
                       onClick={() => removeLigne(index)}
+                      className="w-full sm:w-auto"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -469,10 +476,10 @@ export default function DevisDetail() {
               ))}
             </div>
 
-            <div className="mt-6 space-y-2 text-right border-t pt-4">
-              <div className="text-lg">Total HT: {devis.total_ht.toFixed(2)} €</div>
-              <div className="text-lg">Total TVA: {devis.total_tva.toFixed(2)} €</div>
-              <div className="text-2xl font-bold text-primary">
+            <div className="mt-4 md:mt-6 space-y-1.5 md:space-y-2 text-right border-t pt-3 md:pt-4">
+              <div className="text-sm md:text-lg">Total HT: {devis.total_ht.toFixed(2)} €</div>
+              <div className="text-sm md:text-lg">Total TVA: {devis.total_tva.toFixed(2)} €</div>
+              <div className="text-xl md:text-2xl font-bold text-primary">
                 TOTAL TTC: {devis.total_ttc.toFixed(2)} €
               </div>
             </div>
@@ -480,10 +487,10 @@ export default function DevisDetail() {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Conditions et notes</CardTitle>
+          <CardHeader className="p-4 md:p-6">
+            <CardTitle className="text-base md:text-lg">Conditions et notes</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 p-4 md:p-6 pt-0">
             <div>
               <Label>Conditions de paiement</Label>
               <Input
@@ -504,10 +511,10 @@ export default function DevisDetail() {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Signatures électroniques</CardTitle>
+          <CardHeader className="p-4 md:p-6">
+            <CardTitle className="text-base md:text-lg">Signatures électroniques</CardTitle>
           </CardHeader>
-          <CardContent className="grid md:grid-cols-2 gap-4">
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 md:p-6 pt-0">
             <div>
               <Label>Signature du client</Label>
               {devis.client_signature_url ? (
@@ -547,15 +554,16 @@ export default function DevisDetail() {
           </CardContent>
         </Card>
 
-        <div className="flex gap-4">
-          <Button type="submit">Enregistrer</Button>
+        <div className="flex flex-col sm:flex-row gap-2 md:gap-4">
+          <Button type="submit" className="flex-1 sm:flex-none">Enregistrer</Button>
           {id && id !== "new" && (
-            <Button type="button" variant="outline" onClick={generatePDF}>
+            <Button type="button" variant="outline" onClick={generatePDF} className="flex-1 sm:flex-none">
               <FileText className="h-4 w-4 mr-2" />
-              Télécharger PDF
+              <span className="hidden sm:inline">Télécharger PDF</span>
+              <span className="sm:hidden">PDF</span>
             </Button>
           )}
-          <Button type="button" variant="outline" onClick={() => navigate(-1)}>
+          <Button type="button" variant="outline" onClick={() => navigate(-1)} className="flex-1 sm:flex-none">
             Annuler
           </Button>
         </div>

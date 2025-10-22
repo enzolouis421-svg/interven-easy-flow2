@@ -133,36 +133,39 @@ export default function InterventionsDevis() {
   const showDevis = typeFilter === "tous" || typeFilter === "devis";
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Interventions & Devis</h1>
-        <div className="flex gap-2">
-          <Button onClick={() => navigate("/interventions/new")}>
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 md:gap-4">
+        <h1 className="text-2xl md:text-3xl font-bold">Interventions & Devis</h1>
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={() => navigate("/interventions/new")} className="flex-1 sm:flex-none">
             <Plus className="h-4 w-4 mr-2" />
-            Nouvelle intervention
+            <span className="hidden sm:inline">Nouvelle intervention</span>
+            <span className="sm:hidden">Intervention</span>
           </Button>
-          <Button onClick={() => navigate("/devis/new")}>
+          <Button onClick={() => navigate("/devis/new")} className="flex-1 sm:flex-none">
             <Plus className="h-4 w-4 mr-2" />
-            Nouveau devis
+            <span className="hidden sm:inline">Nouveau devis</span>
+            <span className="sm:hidden">Devis</span>
           </Button>
         </div>
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3 md:gap-4">
         <Tabs value={typeFilter} onValueChange={(v) => setTypeFilter(v as any)}>
-          <TabsList>
-            <TabsTrigger value="tous">Tous</TabsTrigger>
-            <TabsTrigger value="interventions">Interventions</TabsTrigger>
-            <TabsTrigger value="devis">Devis</TabsTrigger>
+          <TabsList className="w-full sm:w-auto">
+            <TabsTrigger value="tous" className="flex-1 sm:flex-none">Tous</TabsTrigger>
+            <TabsTrigger value="interventions" className="flex-1 sm:flex-none">Interventions</TabsTrigger>
+            <TabsTrigger value="devis" className="flex-1 sm:flex-none">Devis</TabsTrigger>
           </TabsList>
         </Tabs>
 
         {showInterventions && (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button
               variant={statusFilter === "tous" ? "default" : "outline"}
               onClick={() => setStatusFilter("tous")}
               size="sm"
+              className="text-xs md:text-sm"
             >
               Tout
             </Button>
@@ -170,6 +173,7 @@ export default function InterventionsDevis() {
               variant={statusFilter === "a_faire" ? "default" : "outline"}
               onClick={() => setStatusFilter("a_faire")}
               size="sm"
+              className="text-xs md:text-sm"
             >
               À faire
             </Button>
@@ -177,6 +181,7 @@ export default function InterventionsDevis() {
               variant={statusFilter === "en_cours" ? "default" : "outline"}
               onClick={() => setStatusFilter("en_cours")}
               size="sm"
+              className="text-xs md:text-sm"
             >
               En cours
             </Button>
@@ -184,6 +189,7 @@ export default function InterventionsDevis() {
               variant={statusFilter === "terminee" ? "default" : "outline"}
               onClick={() => setStatusFilter("terminee")}
               size="sm"
+              className="text-xs md:text-sm"
             >
               Terminée
             </Button>
@@ -191,11 +197,12 @@ export default function InterventionsDevis() {
         )}
 
         {showDevis && typeFilter === "devis" && (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button
               variant={statusFilter === "tous" ? "default" : "outline"}
               onClick={() => setStatusFilter("tous")}
               size="sm"
+              className="text-xs md:text-sm"
             >
               Tout
             </Button>
@@ -203,6 +210,7 @@ export default function InterventionsDevis() {
               variant={statusFilter === "En attente" ? "default" : "outline"}
               onClick={() => setStatusFilter("En attente")}
               size="sm"
+              className="text-xs md:text-sm"
             >
               En attente
             </Button>
@@ -210,6 +218,7 @@ export default function InterventionsDevis() {
               variant={statusFilter === "Envoyé" ? "default" : "outline"}
               onClick={() => setStatusFilter("Envoyé")}
               size="sm"
+              className="text-xs md:text-sm"
             >
               Envoyé
             </Button>
@@ -217,6 +226,7 @@ export default function InterventionsDevis() {
               variant={statusFilter === "Accepté" ? "default" : "outline"}
               onClick={() => setStatusFilter("Accepté")}
               size="sm"
+              className="text-xs md:text-sm"
             >
               Accepté
             </Button>
@@ -224,6 +234,7 @@ export default function InterventionsDevis() {
               variant={statusFilter === "Refusé" ? "default" : "outline"}
               onClick={() => setStatusFilter("Refusé")}
               size="sm"
+              className="text-xs md:text-sm"
             >
               Refusé
             </Button>
@@ -231,44 +242,44 @@ export default function InterventionsDevis() {
         )}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {showInterventions &&
           filteredInterventions.map((intervention) => (
             <Card key={intervention.id} className="card-hover border-l-4 border-l-primary">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              <CardHeader className="p-4 md:p-6">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="text-base md:text-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent truncate">
                       {intervention.titre}
                     </CardTitle>
                     <Badge className="mt-2" variant={interventionStatusConfig[intervention.statut as keyof typeof interventionStatusConfig]?.variant}>
                       {interventionStatusConfig[intervention.statut as keyof typeof interventionStatusConfig]?.label}
                     </Badge>
                   </div>
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => navigate(`/interventions/${intervention.id}`)} className="hover:bg-primary/10 hover:text-primary">
-                      <Eye className="h-4 w-4" />
+                  <div className="flex gap-1 flex-shrink-0">
+                    <Button variant="ghost" size="icon" onClick={() => navigate(`/interventions/${intervention.id}`)} className="hover:bg-primary/10 hover:text-primary h-8 w-8">
+                      <Eye className="h-3.5 w-3.5" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDeleteIntervention(intervention.id)} className="hover:bg-destructive/10 hover:text-destructive">
-                      <Trash2 className="h-4 w-4" />
+                    <Button variant="ghost" size="icon" onClick={() => handleDeleteIntervention(intervention.id)} className="hover:bg-destructive/10 hover:text-destructive h-8 w-8">
+                      <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-2">
+              <CardContent className="space-y-2 p-4 md:p-6 pt-0">
                 {intervention.description && (
-                  <p className="text-sm text-muted-foreground line-clamp-2">{intervention.description}</p>
+                  <p className="text-xs md:text-sm text-muted-foreground line-clamp-2">{intervention.description}</p>
                 )}
                 {intervention.clients && (
-                  <div className="text-sm font-medium">
+                  <div className="text-xs md:text-sm font-medium truncate">
                     {intervention.clients.entreprise || `${intervention.clients.prenom} ${intervention.clients.nom}`}
                   </div>
                 )}
                 {intervention.adresse && (
-                  <div className="text-sm text-muted-foreground">{intervention.adresse}</div>
+                  <div className="text-xs md:text-sm text-muted-foreground truncate">{intervention.adresse}</div>
                 )}
                 {intervention.date_intervention && (
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-xs md:text-sm text-muted-foreground">
                     {format(new Date(intervention.date_intervention), "PPP", { locale: fr })}
                   </div>
                 )}
@@ -279,46 +290,46 @@ export default function InterventionsDevis() {
         {showDevis &&
           filteredDevis.map((d) => (
             <Card key={d.id} className="card-hover border-l-4 border-l-secondary">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent">
+              <CardHeader className="p-4 md:p-6">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="text-base md:text-lg bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent truncate">
                       {d.reference}
                     </CardTitle>
                     <div className="flex gap-2 mt-2 flex-wrap">
-                      <Badge variant={devisStatusConfig[d.statut as keyof typeof devisStatusConfig]?.variant}>
+                      <Badge variant={devisStatusConfig[d.statut as keyof typeof devisStatusConfig]?.variant} className="text-xs">
                         {devisStatusConfig[d.statut as keyof typeof devisStatusConfig]?.label}
                       </Badge>
-                      {d.pret_envoi && <Badge variant="default" className="bg-accent">Prêt</Badge>}
+                      {d.pret_envoi && <Badge variant="default" className="bg-accent text-xs">Prêt</Badge>}
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => navigate(`/devis/preview/${d.id}`)} className="hover:bg-secondary/10 hover:text-secondary" title="Visualiser">
-                      <Eye className="h-4 w-4" />
+                  <div className="flex gap-1 flex-wrap justify-end flex-shrink-0">
+                    <Button variant="ghost" size="icon" onClick={() => navigate(`/devis/preview/${d.id}`)} className="hover:bg-secondary/10 hover:text-secondary h-8 w-8" title="Visualiser">
+                      <Eye className="h-3.5 w-3.5" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => navigate(`/devis/${d.id}`)} className="hover:bg-primary/10 hover:text-primary" title="Modifier">
-                      <FileText className="h-4 w-4" />
+                    <Button variant="ghost" size="icon" onClick={() => navigate(`/devis/${d.id}`)} className="hover:bg-primary/10 hover:text-primary h-8 w-8" title="Modifier">
+                      <FileText className="h-3.5 w-3.5" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDownloadDevisPDF(d.id)} className="hover:bg-accent/10 hover:text-accent" title="Télécharger PDF">
-                      <Download className="h-4 w-4" />
+                    <Button variant="ghost" size="icon" onClick={() => handleDownloadDevisPDF(d.id)} className="hover:bg-accent/10 hover:text-accent h-8 w-8" title="Télécharger PDF">
+                      <Download className="h-3.5 w-3.5" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDeleteDevis(d.id)} className="hover:bg-destructive/10 hover:text-destructive" title="Supprimer">
-                      <Trash2 className="h-4 w-4" />
+                    <Button variant="ghost" size="icon" onClick={() => handleDeleteDevis(d.id)} className="hover:bg-destructive/10 hover:text-destructive h-8 w-8" title="Supprimer">
+                      <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-2">
+              <CardContent className="space-y-2 p-4 md:p-6 pt-0">
                 {d.clients && (
-                  <div className="flex items-center gap-2 text-sm font-medium">
-                    <FileText className="h-4 w-4 text-secondary" />
-                    <span>{d.clients.entreprise || `${d.clients.prenom} ${d.clients.nom}`}</span>
+                  <div className="flex items-center gap-2 text-xs md:text-sm font-medium">
+                    <FileText className="h-3.5 w-3.5 md:h-4 md:w-4 text-secondary flex-shrink-0" />
+                    <span className="truncate">{d.clients.entreprise || `${d.clients.prenom} ${d.clients.nom}`}</span>
                   </div>
                 )}
-                <div className="text-sm text-muted-foreground">
+                <div className="text-xs md:text-sm text-muted-foreground">
                   {format(new Date(d.date_creation), "PPP", { locale: fr })}
                 </div>
-                <div className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                <div className="text-lg md:text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                   {parseFloat(String(d.total_ttc)).toFixed(2)} € TTC
                 </div>
               </CardContent>
