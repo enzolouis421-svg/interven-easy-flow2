@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ClipboardList, Users, Wrench, CheckCircle2, Euro, FileText } from "lucide-react";
+import { ClipboardList, Users, Wrench, CheckCircle2, Euro, FileText, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
@@ -20,11 +20,35 @@ export default function Dashboard() {
       refuse: 0,
     },
   });
+  const [todayInterventions, setTodayInterventions] = useState<any[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     loadStats();
+    loadTodayInterventions();
   }, []);
+
+  const loadTodayInterventions = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const { data } = await supabase
+      .from("interventions")
+      .select("*, clients(nom, prenom, entreprise)")
+      .eq("user_id", user.id)
+      .gte("date_intervention", today.toISOString())
+      .lt("date_intervention", tomorrow.toISOString())
+      .order("date_intervention");
+
+    if (data) {
+      setTodayInterventions(data);
+    }
+  };
 
   const loadStats = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -112,6 +136,44 @@ export default function Dashboard() {
           Bienvenue sur IntervenGo
         </p>
       </div>
+
+      {/* Today's Interventions Alert */}
+      {todayInterventions.length > 0 && (
+        <Card className="border-2 border-primary bg-primary/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-primary">
+              <AlertCircle className="h-5 w-5" />
+              Interventions du jour ({todayInterventions.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {todayInterventions.map((intervention) => (
+                <div
+                  key={intervention.id}
+                  className="flex items-center justify-between p-3 bg-card rounded-lg border hover:border-primary transition-colors cursor-pointer"
+                  onClick={() => navigate(`/interventions/${intervention.id}`)}
+                >
+                  <div className="flex-1">
+                    <p className="font-semibold">{intervention.titre}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {intervention.clients?.entreprise || 
+                        `${intervention.clients?.prenom} ${intervention.clients?.nom}`}
+                    </p>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {intervention.date_intervention && 
+                      new Date(intervention.date_intervention).toLocaleTimeString("fr-FR", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {statsCards.map((stat, index) => (

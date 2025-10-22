@@ -252,6 +252,73 @@ export default function DevisPreview() {
               </div>
             )}
           </div>
+
+          {/* Signatures Section */}
+          <div className="mt-12 border-t-2 border-gray-200 pt-8">
+            <div className="grid grid-cols-2 gap-8 mb-8">
+              {/* Client Signature */}
+              <div className="space-y-4">
+                <p className="font-semibold text-center">Signature du client</p>
+                {devis.client_signature_url ? (
+                  <div className="border-2 border-gray-300 rounded p-2 h-32 flex items-center justify-center bg-gray-50">
+                    <img 
+                      src={devis.client_signature_url} 
+                      alt="Signature client" 
+                      className="max-h-full"
+                    />
+                  </div>
+                ) : (
+                  <div className="border-2 border-dashed border-gray-300 rounded p-4 h-32 flex items-center justify-center bg-gray-50">
+                    <p className="text-gray-400 text-sm">Signature en attente</p>
+                  </div>
+                )}
+                <div className="space-y-1 text-center text-sm">
+                  <p className="font-semibold">Date:</p>
+                  <div className="border-b-2 border-gray-300 w-40 mx-auto pb-1">
+                    {devis.date_signature 
+                      ? new Date(devis.date_signature).toLocaleDateString("fr-FR")
+                      : "___/___/_____"}
+                  </div>
+                </div>
+              </div>
+
+              {/* Company Signature */}
+              <div className="space-y-4">
+                <p className="font-semibold text-center">Signature de l'entreprise</p>
+                {devis.company_signature_url ? (
+                  <div className="border-2 border-gray-300 rounded p-2 h-32 flex items-center justify-center bg-gray-50">
+                    <img 
+                      src={devis.company_signature_url} 
+                      alt="Signature entreprise" 
+                      className="max-h-full"
+                    />
+                  </div>
+                ) : (
+                  <div className="border-2 border-dashed border-gray-300 rounded p-4 h-32 flex items-center justify-center bg-gray-50">
+                    <p className="text-gray-400 text-sm">Signature en attente</p>
+                  </div>
+                )}
+                <div className="space-y-1 text-center text-sm">
+                  <p className="font-semibold">Date:</p>
+                  <div className="border-b-2 border-gray-300 w-40 mx-auto pb-1">
+                    {devis.date_signature 
+                      ? new Date(devis.date_signature).toLocaleDateString("fr-FR")
+                      : "___/___/_____"}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bon pour accord */}
+            <div className="text-center">
+              <p className="text-lg font-bold uppercase text-primary">
+                Bon pour accord
+              </p>
+              <p className="text-xs text-gray-500 mt-2">
+                En signant ce document, le client accepte les conditions générales et le montant indiqué
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

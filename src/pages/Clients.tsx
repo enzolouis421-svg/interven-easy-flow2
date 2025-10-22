@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Mail, Phone, MapPin, Trash2, Edit } from "lucide-react";
+import { Plus, Mail, Phone, MapPin, Trash2, Edit, Bell } from "lucide-react";
 
 interface Client {
   id: string;
@@ -135,6 +135,22 @@ export default function Clients() {
         description: "Le client a été supprimé avec succès.",
       });
       loadClients();
+    }
+  };
+
+  const handleRelance = (client: Client) => {
+    if (client.email) {
+      window.location.href = `mailto:${client.email}?subject=Relance&body=Bonjour ${client.prenom} ${client.nom},%0D%0A%0D%0ANous vous contactons pour faire un suivi...`;
+      toast({
+        title: "Email de relance",
+        description: "L'application email s'ouvre pour envoyer une relance.",
+      });
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Ce client n'a pas d'adresse email.",
+      });
     }
   };
 
@@ -273,7 +289,7 @@ export default function Clients() {
                 </p>
               )}
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-3">
               {client.email && (
                 <div className="flex items-center gap-2 text-sm">
                   <Mail className="h-4 w-4 text-muted-foreground" />
@@ -292,6 +308,15 @@ export default function Clients() {
                   <span className="line-clamp-2">{client.adresse}</span>
                 </div>
               )}
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full mt-2"
+                onClick={() => handleRelance(client)}
+              >
+                <Bell className="h-4 w-4 mr-2" />
+                Relancer
+              </Button>
             </CardContent>
           </Card>
         ))}

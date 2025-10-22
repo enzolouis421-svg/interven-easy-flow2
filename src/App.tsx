@@ -10,6 +10,7 @@ import Clients from "./pages/Clients";
 import Techniciens from "./pages/Techniciens";
 import TechnicienProfile from "./pages/TechnicienProfile";
 import AssistantAI from "./pages/AssistantAI";
+import Calendar from "./pages/Calendar";
 import Settings from "./pages/Settings";
 import DevisDetail from "./pages/DevisDetail";
 import DevisPreview from "./pages/DevisPreview";
@@ -106,6 +107,14 @@ const App = () => (
             element={
               <DashboardLayout>
                 <TechnicienProfile />
+              </DashboardLayout>
+            }
+          />
+          <Route
+            path="/calendar"
+            element={
+              <DashboardLayout>
+                <Calendar />
               </DashboardLayout>
             }
           />

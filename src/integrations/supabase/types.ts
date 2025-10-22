@@ -114,9 +114,12 @@ export type Database = {
         Row: {
           client_id: string
           client_nom: string | null
+          client_signature_url: string | null
+          company_signature_url: string | null
           conditions_paiement: string | null
           created_at: string
           date_creation: string
+          date_signature: string | null
           delai_realisation: string | null
           id: string
           lignes_prestation: Json
@@ -135,9 +138,12 @@ export type Database = {
         Insert: {
           client_id: string
           client_nom?: string | null
+          client_signature_url?: string | null
+          company_signature_url?: string | null
           conditions_paiement?: string | null
           created_at?: string
           date_creation?: string
+          date_signature?: string | null
           delai_realisation?: string | null
           id?: string
           lignes_prestation?: Json
@@ -156,9 +162,12 @@ export type Database = {
         Update: {
           client_id?: string
           client_nom?: string | null
+          client_signature_url?: string | null
+          company_signature_url?: string | null
           conditions_paiement?: string | null
           created_at?: string
           date_creation?: string
+          date_signature?: string | null
           delai_realisation?: string | null
           id?: string
           lignes_prestation?: Json

@@ -1,4 +1,4 @@
-import { Home, ClipboardList, Users, Wrench, LogOut, FileText, Bot, Settings } from "lucide-react";
+import { Home, ClipboardList, Users, Wrench, LogOut, FileText, Bot, Settings, Calendar } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   Sidebar,
@@ -21,6 +21,7 @@ const menuItems = [
   { title: "Interventions & Devis", url: "/interventions-devis", icon: ClipboardList },
   { title: "Clients", url: "/clients", icon: Users },
   { title: "Techniciens", url: "/techniciens", icon: Wrench },
+  { title: "Calendrier", url: "/calendar", icon: Calendar },
   { title: "Assistant IA", url: "/assistant", icon: Bot },
   { title: "Paramètres", url: "/settings", icon: Settings },
 ];

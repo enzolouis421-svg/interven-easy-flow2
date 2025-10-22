@@ -7,7 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, FileText, ArrowLeft } from "lucide-react";
+import { Plus, Trash2, FileText, ArrowLeft, Pen } from "lucide-react";
+import SignatureCanvas from "react-signature-canvas";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 interface Client {
   id: string;
@@ -28,6 +30,9 @@ export default function DevisDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [signatureDialogOpen, setSignatureDialogOpen] = useState(false);
+  const [signatureType, setSignatureType] = useState<"client" | "company">("client");
+  const signaturePadRef = useState<SignatureCanvas | null>(null)[0];
 
   const [clients, setClients] = useState<Client[]>([]);
   const [companySettings, setCompanySettings] = useState<any>(null);
@@ -48,6 +53,9 @@ export default function DevisDetail() {
     notes: "",
     statut: "En attente",
     pret_envoi: false,
+    client_signature_url: "",
+    company_signature_url: "",
+    date_signature: null,
   });
 
   useEffect(() => {
@@ -232,6 +240,67 @@ export default function DevisDetail() {
     } catch (error: any) {
       toast({ variant: "destructive", title: "Erreur", description: error.message });
     }
+  };
+
+  const handleSaveSignature = async () => {
+    if (!signaturePadRef || signaturePadRef.isEmpty()) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Veuillez signer avant de sauvegarder",
+      });
+      return;
+    }
+
+    try {
+      const signatureData = signaturePadRef.toDataURL();
+      const blob = await (await fetch(signatureData)).blob();
+      const fileName = `signature-${signatureType}-${Date.now()}.png`;
+
+      const { data, error } = await supabase.storage
+        .from("signatures")
+        .upload(fileName, blob);
+
+      if (error) throw error;
+
+      const { data: urlData } = supabase.storage
+        .from("signatures")
+        .getPublicUrl(fileName);
+
+      const updateField = signatureType === "client" ? "client_signature_url" : "company_signature_url";
+      const updateData = {
+        [updateField]: urlData.publicUrl,
+        date_signature: new Date().toISOString(),
+      };
+
+      if (id && id !== "new") {
+        const { error: updateError } = await supabase
+          .from("devis")
+          .update(updateData)
+          .eq("id", id);
+
+        if (updateError) throw updateError;
+      }
+
+      setDevis((prev: any) => ({ ...prev, ...updateData }));
+      setSignatureDialogOpen(false);
+
+      toast({
+        title: "Signature enregistrée",
+        description: "La signature a été enregistrée avec succès",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: error.message,
+      });
+    }
+  };
+
+  const openSignatureDialog = (type: "client" | "company") => {
+    setSignatureType(type);
+    setSignatureDialogOpen(true);
   };
 
   return (
@@ -434,6 +503,50 @@ export default function DevisDetail() {
           </CardContent>
         </Card>
 
+        <Card>
+          <CardHeader>
+            <CardTitle>Signatures électroniques</CardTitle>
+          </CardHeader>
+          <CardContent className="grid md:grid-cols-2 gap-4">
+            <div>
+              <Label>Signature du client</Label>
+              {devis.client_signature_url ? (
+                <div className="border-2 rounded-lg p-4 mt-2">
+                  <img src={devis.client_signature_url} alt="Signature client" className="max-h-32" />
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full mt-2"
+                  onClick={() => openSignatureDialog("client")}
+                >
+                  <Pen className="h-4 w-4 mr-2" />
+                  Signer (Client)
+                </Button>
+              )}
+            </div>
+            <div>
+              <Label>Signature de l'entreprise</Label>
+              {devis.company_signature_url ? (
+                <div className="border-2 rounded-lg p-4 mt-2">
+                  <img src={devis.company_signature_url} alt="Signature entreprise" className="max-h-32" />
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full mt-2"
+                  onClick={() => openSignatureDialog("company")}
+                >
+                  <Pen className="h-4 w-4 mr-2" />
+                  Signer (Entreprise)
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="flex gap-4">
           <Button type="submit">Enregistrer</Button>
           {id && id !== "new" && (
@@ -447,6 +560,49 @@ export default function DevisDetail() {
           </Button>
         </div>
       </form>
+
+      {/* Signature Dialog */}
+      <Dialog open={signatureDialogOpen} onOpenChange={setSignatureDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Signature {signatureType === "client" ? "du client" : "de l'entreprise"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="border-2 border-dashed rounded-lg">
+              <SignatureCanvas
+                ref={(ref) => {
+                  if (ref) {
+                    // @ts-ignore
+                    signaturePadRef = ref;
+                  }
+                }}
+                canvasProps={{
+                  className: "w-full h-64",
+                }}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => signaturePadRef?.clear()}
+                className="flex-1"
+              >
+                Effacer
+              </Button>
+              <Button
+                type="button"
+                onClick={handleSaveSignature}
+                className="flex-1"
+              >
+                Enregistrer la signature
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
