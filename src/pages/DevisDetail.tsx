@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,7 +32,7 @@ export default function DevisDetail() {
   const { toast } = useToast();
   const [signatureDialogOpen, setSignatureDialogOpen] = useState(false);
   const [signatureType, setSignatureType] = useState<"client" | "company">("client");
-  const signaturePadRef = useState<SignatureCanvas | null>(null)[0];
+  const signaturePadRef = useRef<SignatureCanvas | null>(null);
 
   const [clients, setClients] = useState<Client[]>([]);
   const [companySettings, setCompanySettings] = useState<any>(null);
@@ -236,14 +236,27 @@ export default function DevisDetail() {
       });
 
       if (error) throw error;
-      toast({ title: "Téléchargement réussi", description: "Le devis a été téléchargé au format PDF" });
+
+      if (data?.html) {
+        // Créer un blob avec le contenu HTML
+        const printWindow = window.open("", "_blank");
+        if (printWindow) {
+          printWindow.document.write(data.html);
+          printWindow.document.close();
+          printWindow.onload = () => {
+            printWindow.print();
+          };
+        }
+      }
+
+      toast({ title: "PDF généré", description: "Fenêtre d'impression ouverte" });
     } catch (error: any) {
       toast({ variant: "destructive", title: "Erreur", description: error.message });
     }
   };
 
   const handleSaveSignature = async () => {
-    if (!signaturePadRef || signaturePadRef.isEmpty()) {
+    if (!signaturePadRef.current || signaturePadRef.current.isEmpty()) {
       toast({
         variant: "destructive",
         title: "Erreur",
@@ -253,7 +266,7 @@ export default function DevisDetail() {
     }
 
     try {
-      const signatureData = signaturePadRef.toDataURL();
+      const signatureData = signaturePadRef.current.toDataURL();
       const blob = await (await fetch(signatureData)).blob();
       const fileName = `signature-${signatureType}-${Date.now()}.png`;
 
@@ -580,12 +593,7 @@ export default function DevisDetail() {
           <div className="space-y-4">
             <div className="border-2 border-dashed rounded-lg">
               <SignatureCanvas
-                ref={(ref) => {
-                  if (ref) {
-                    // @ts-ignore
-                    signaturePadRef = ref;
-                  }
-                }}
+                ref={signaturePadRef}
                 canvasProps={{
                   className: "w-full h-64",
                 }}
@@ -595,7 +603,7 @@ export default function DevisDetail() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => signaturePadRef?.clear()}
+                onClick={() => signaturePadRef.current?.clear()}
                 className="flex-1"
               >
                 Effacer
