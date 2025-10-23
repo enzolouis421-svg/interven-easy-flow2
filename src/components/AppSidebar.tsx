@@ -27,7 +27,7 @@ const menuItems = [
 ];
 
 export function AppSidebar() {
-  const { state, setOpenMobile, isMobile } = useSidebar();
+  const { state, openMobile, setOpenMobile, isMobile } = useSidebar();
   const navigate = useNavigate();
   const { toast } = useToast();
   const collapsed = state === "collapsed";
@@ -46,7 +46,7 @@ export function AppSidebar() {
       <SidebarContent className="pt-4 pb-4">
         <SidebarGroup>
           <SidebarGroupLabel className="px-4 mb-4">
-            {collapsed ? (
+            {(isMobile && !openMobile) || (!isMobile && collapsed) ? (
               <div className="w-8 h-8 rounded-xl gradient-primary flex items-center justify-center text-primary-foreground font-bold text-sm shadow-glow">
                 IG
               </div>
@@ -93,14 +93,14 @@ export function AppSidebar() {
                               <div className="absolute inset-0 bg-primary/20 blur-lg rounded-full animate-pulse" />
                             )}
                           </div>
-                          {!collapsed && (
+                          {((isMobile && openMobile) || (!isMobile && !collapsed)) && (
                             <span className={`font-medium transition-all duration-300 ${
                               isActive ? 'text-primary' : ''
                             }`}>
                               {item.title}
                             </span>
                           )}
-                          {isActive && !collapsed && (
+                          {isActive && ((isMobile && openMobile) || (!isMobile && !collapsed)) && (
                             <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                           )}
                         </>
@@ -122,7 +122,7 @@ export function AppSidebar() {
               className="w-full justify-start gap-3 px-3 py-2.5 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-all duration-300 group"
             >
               <LogOut className="h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
-              {!collapsed && <span className="font-medium">Déconnexion</span>}
+              {((isMobile && openMobile) || (!isMobile && !collapsed)) && <span className="font-medium">Déconnexion</span>}
             </Button>
           </SidebarMenuItem>
         </SidebarMenu>
