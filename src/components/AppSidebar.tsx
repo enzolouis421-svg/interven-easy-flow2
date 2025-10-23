@@ -15,7 +15,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 const menuItems = [
   { title: "Tableau de bord", url: "/dashboard", icon: Home },
@@ -28,10 +27,9 @@ const menuItems = [
 ];
 
 export function AppSidebar() {
-  const { state, setOpen } = useSidebar();
+  const { state, setOpenMobile, isMobile } = useSidebar();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isMobile = useIsMobile();
   const collapsed = state === "collapsed";
 
   const handleLogout = async () => {
@@ -73,7 +71,7 @@ export function AppSidebar() {
                         end={item.url === "/dashboard"}
                         onClick={() => {
                           if (isMobile) {
-                            setOpen(false);
+                            setOpenMobile(false);
                           }
                         }}
                         className={({ isActive }) =>
