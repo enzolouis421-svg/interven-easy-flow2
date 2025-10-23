@@ -15,6 +15,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const menuItems = [
   { title: "Tableau de bord", url: "/dashboard", icon: Home },
@@ -27,9 +28,10 @@ const menuItems = [
 ];
 
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, setOpen } = useSidebar();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const collapsed = state === "collapsed";
 
   const handleLogout = async () => {
@@ -69,6 +71,11 @@ export function AppSidebar() {
                       <NavLink
                         to={item.url}
                         end={item.url === "/dashboard"}
+                        onClick={() => {
+                          if (isMobile) {
+                            setOpen(false);
+                          }
+                        }}
                         className={({ isActive }) =>
                         `group relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 ${
                           isActive

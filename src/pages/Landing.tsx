@@ -58,7 +58,7 @@ export default function Landing() {
               size="lg" 
               className="btn-gradient text-lg px-8 py-6 shadow-glow hover:shadow-glow-lg transition-all"
             >
-              Commencer gratuitement
+              Commencer
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </div>
