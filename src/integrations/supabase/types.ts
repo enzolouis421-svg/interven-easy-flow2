@@ -193,6 +193,80 @@ export type Database = {
           },
         ]
       }
+      factures: {
+        Row: {
+          client_id: string
+          client_nom: string | null
+          company_signature_url: string | null
+          conditions_paiement: string | null
+          created_at: string
+          date_echeance: string | null
+          date_emission: string
+          devis_id: string | null
+          id: string
+          lignes_prestation: Json
+          montant_paye: number
+          notes: string | null
+          reference: string
+          statut: string
+          total_ht: number
+          total_ttc: number
+          total_tva: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_id: string
+          client_nom?: string | null
+          company_signature_url?: string | null
+          conditions_paiement?: string | null
+          created_at?: string
+          date_echeance?: string | null
+          date_emission?: string
+          devis_id?: string | null
+          id?: string
+          lignes_prestation?: Json
+          montant_paye?: number
+          notes?: string | null
+          reference?: string
+          statut?: string
+          total_ht?: number
+          total_ttc?: number
+          total_tva?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string
+          client_nom?: string | null
+          company_signature_url?: string | null
+          conditions_paiement?: string | null
+          created_at?: string
+          date_echeance?: string | null
+          date_emission?: string
+          devis_id?: string | null
+          id?: string
+          lignes_prestation?: Json
+          montant_paye?: number
+          notes?: string | null
+          reference?: string
+          statut?: string
+          total_ht?: number
+          total_ttc?: number
+          total_tva?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "factures_devis_id_fkey"
+            columns: ["devis_id"]
+            isOneToOne: false
+            referencedRelation: "devis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interventions: {
         Row: {
           adresse: string | null

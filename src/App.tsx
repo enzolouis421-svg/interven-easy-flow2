@@ -14,6 +14,8 @@ import Calendar from "./pages/Calendar";
 import Settings from "./pages/Settings";
 import DevisDetail from "./pages/DevisDetail";
 import DevisPreview from "./pages/DevisPreview";
+import FactureDetail from "./pages/FactureDetail";
+import FacturePreview from "./pages/FacturePreview";
 import InterventionsDevis from "./pages/InterventionsDevis";
 import Auth from "./pages/Auth";
 import Landing from "./pages/Landing";
@@ -67,6 +69,38 @@ const App = () => (
             element={
               <DashboardLayout>
                 <DevisPreview />
+              </DashboardLayout>
+            }
+          />
+          <Route
+            path="/facture/new"
+            element={
+              <DashboardLayout>
+                <FactureDetail />
+              </DashboardLayout>
+            }
+          />
+          <Route
+            path="/facture/new/:devisId"
+            element={
+              <DashboardLayout>
+                <FactureDetail />
+              </DashboardLayout>
+            }
+          />
+          <Route
+            path="/facture/:id/edit"
+            element={
+              <DashboardLayout>
+                <FactureDetail />
+              </DashboardLayout>
+            }
+          />
+          <Route
+            path="/facture/preview/:id"
+            element={
+              <DashboardLayout>
+                <FacturePreview />
               </DashboardLayout>
             }
           />
