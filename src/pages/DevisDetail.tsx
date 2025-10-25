@@ -591,14 +591,17 @@ export default function DevisDetail() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="border-2 border-dashed rounded-lg">
+            <div className="bg-white rounded-lg">
               <SignatureCanvas
                 ref={signaturePadRef}
                 canvasProps={{
-                  className: "w-full h-64",
+                  className: "signature-canvas w-full h-64",
                 }}
               />
             </div>
+            <p className="signature-legal-text">
+              Je certifie que cette signature électronique a la même valeur juridique qu'une signature manuscrite
+            </p>
             <div className="flex gap-2">
               <Button
                 type="button"

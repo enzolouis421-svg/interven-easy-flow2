@@ -475,13 +475,16 @@ export default function InterventionDetail() {
 
             <div className="space-y-2">
               <Label>Signature client</Label>
-              <div className="border rounded-lg p-4 bg-white">
+              <div className="border rounded-lg p-4 bg-gray-50">
                 <SignatureCanvas
                   ref={signatureRef}
                   canvasProps={{
-                    className: "w-full h-32 border rounded",
+                    className: "signature-canvas w-full h-32",
                   }}
                 />
+                <p className="signature-legal-text">
+                  Signature électronique à valeur légale
+                </p>
                 <Button
                   type="button"
                   variant="outline"

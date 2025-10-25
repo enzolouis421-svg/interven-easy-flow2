@@ -209,4 +209,14 @@ All colors MUST be HSL.
   .text-gradient {
     @apply bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent;
   }
+
+  .signature-canvas {
+    @apply bg-white border-2 border-gray-300 rounded-lg cursor-crosshair;
+    touch-action: none;
+  }
+
+  .signature-legal-text {
+    @apply text-xs text-gray-500 italic mt-2 text-center;
+    font-family: 'Caveat', cursive;
+  }
 }
