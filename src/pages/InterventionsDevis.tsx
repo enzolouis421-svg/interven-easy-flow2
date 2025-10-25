@@ -17,6 +17,7 @@ interface Intervention {
   statut: string;
   date_intervention: string | null;
   adresse: string | null;
+  rapport_pdf_url: string | null;
   clients: { nom: string; prenom: string; entreprise: string | null } | null;
 }
 
@@ -109,6 +110,38 @@ export default function InterventionsDevis() {
       toast({
         title: "Téléchargement réussi",
         description: "Le devis a été téléchargé au format PDF",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: error.message,
+      });
+    }
+  };
+
+  const handleDownloadInterventionPDF = async (id: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-pdf", {
+        body: { type: "intervention", id },
+      });
+
+      if (error) throw error;
+
+      if (data.html) {
+        const printWindow = window.open("", "_blank");
+        if (printWindow) {
+          printWindow.document.write(data.html);
+          printWindow.document.close();
+          printWindow.onload = () => {
+            printWindow.print();
+          };
+        }
+      }
+
+      toast({
+        title: "PDF généré",
+        description: "Fenêtre d'impression ouverte",
       });
     } catch (error: any) {
       toast({
@@ -257,10 +290,13 @@ export default function InterventionsDevis() {
                     </Badge>
                   </div>
                   <div className="flex gap-1 flex-shrink-0">
-                    <Button variant="ghost" size="icon" onClick={() => navigate(`/interventions/${intervention.id}`)} className="hover:bg-primary/10 hover:text-primary h-8 w-8">
+                    <Button variant="ghost" size="icon" onClick={() => navigate(`/interventions/${intervention.id}`)} className="hover:bg-primary/10 hover:text-primary h-8 w-8" title="Voir">
                       <Eye className="h-3.5 w-3.5" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDeleteIntervention(intervention.id)} className="hover:bg-destructive/10 hover:text-destructive h-8 w-8">
+                    <Button variant="ghost" size="icon" onClick={() => handleDownloadInterventionPDF(intervention.id)} className="hover:bg-accent/10 hover:text-accent h-8 w-8" title="Télécharger PDF">
+                      <Download className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => handleDeleteIntervention(intervention.id)} className="hover:bg-destructive/10 hover:text-destructive h-8 w-8" title="Supprimer">
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>

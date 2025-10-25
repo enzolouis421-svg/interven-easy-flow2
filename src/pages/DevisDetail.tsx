@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, FileText, ArrowLeft, Pen } from "lucide-react";
 import SignatureCanvas from "react-signature-canvas";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 
 interface Client {
   id: string;
@@ -32,6 +33,7 @@ export default function DevisDetail() {
   const { toast } = useToast();
   const [signatureDialogOpen, setSignatureDialogOpen] = useState(false);
   const [signatureType, setSignatureType] = useState<"client" | "company">("client");
+  const [signatureMode, setSignatureMode] = useState<"electronic" | "manual">("electronic");
   const signaturePadRef = useRef<SignatureCanvas | null>(null);
 
   const [clients, setClients] = useState<Client[]>([]);
@@ -525,45 +527,66 @@ export default function DevisDetail() {
 
         <Card>
           <CardHeader className="p-4 md:p-6">
-            <CardTitle className="text-base md:text-lg">Signatures électroniques</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base md:text-lg">Signatures</CardTitle>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="signature-mode" className="text-sm text-muted-foreground">
+                  {signatureMode === "electronic" ? "Électronique" : "Manuscrite"}
+                </Label>
+                <Switch
+                  id="signature-mode"
+                  checked={signatureMode === "electronic"}
+                  onCheckedChange={(checked) => setSignatureMode(checked ? "electronic" : "manual")}
+                />
+              </div>
+            </div>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 md:p-6 pt-0">
-            <div>
-              <Label>Signature du client</Label>
-              {devis.client_signature_url ? (
-                <div className="border-2 rounded-lg p-4 mt-2">
-                  <img src={devis.client_signature_url} alt="Signature client" className="max-h-32" />
+          <CardContent className="space-y-4 p-4 md:p-6 pt-0">
+            {signatureMode === "electronic" ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Signature du client</Label>
+                  {devis.client_signature_url ? (
+                    <div className="border-2 rounded-lg p-4 mt-2">
+                      <img src={devis.client_signature_url} alt="Signature client" className="max-h-32" />
+                    </div>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full mt-2"
+                      onClick={() => openSignatureDialog("client")}
+                    >
+                      <Pen className="h-4 w-4 mr-2" />
+                      Signer (Client)
+                    </Button>
+                  )}
                 </div>
-              ) : (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full mt-2"
-                  onClick={() => openSignatureDialog("client")}
-                >
-                  <Pen className="h-4 w-4 mr-2" />
-                  Signer (Client)
-                </Button>
-              )}
-            </div>
-            <div>
-              <Label>Signature de l'entreprise</Label>
-              {devis.company_signature_url ? (
-                <div className="border-2 rounded-lg p-4 mt-2">
-                  <img src={devis.company_signature_url} alt="Signature entreprise" className="max-h-32" />
+                <div>
+                  <Label>Signature de l'entreprise</Label>
+                  {devis.company_signature_url ? (
+                    <div className="border-2 rounded-lg p-4 mt-2">
+                      <img src={devis.company_signature_url} alt="Signature entreprise" className="max-h-32" />
+                    </div>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full mt-2"
+                      onClick={() => openSignatureDialog("company")}
+                    >
+                      <Pen className="h-4 w-4 mr-2" />
+                      Signer (Entreprise)
+                    </Button>
+                  )}
                 </div>
-              ) : (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full mt-2"
-                  onClick={() => openSignatureDialog("company")}
-                >
-                  <Pen className="h-4 w-4 mr-2" />
-                  Signer (Entreprise)
-                </Button>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <p className="text-sm">Mode signature manuscrite activé</p>
+                <p className="text-xs mt-2">Les signatures seront ajoutées manuellement sur le document imprimé</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 

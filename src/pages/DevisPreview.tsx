@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Edit, FileDown } from "lucide-react";
+import { ArrowLeft, Edit, FileDown, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function DevisPreview() {
@@ -93,6 +93,50 @@ export default function DevisPreview() {
     }
   };
 
+  const handleGenerateFacture = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Créer une facture à partir du devis
+      const { data: factureData, error } = await supabase
+        .from("factures")
+        .insert({
+          user_id: user.id,
+          devis_id: id,
+          client_id: devis.client_id,
+          client_nom: devis.client_nom,
+          reference: `FACT-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, "0")}${String(new Date().getDate()).padStart(2, "0")}-${Math.floor(Math.random() * 1000).toString().padStart(3, "0")}`,
+          date_emission: new Date().toISOString(),
+          date_echeance: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          lignes_prestation: devis.lignes_prestation,
+          total_ht: devis.total_ht,
+          total_tva: devis.total_tva,
+          total_ttc: devis.total_ttc,
+          conditions_paiement: devis.conditions_paiement,
+          notes: devis.notes,
+          statut: "Non payée",
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: "Facture créée",
+        description: "La facture a été générée à partir du devis",
+      });
+
+      navigate(`/factures/${factureData.id}`);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: error.message,
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -124,6 +168,10 @@ export default function DevisPreview() {
             <Button variant="outline" onClick={() => navigate(`/devis/${id}`)}>
               <Edit className="h-4 w-4 mr-2" />
               Modifier
+            </Button>
+            <Button variant="outline" onClick={handleGenerateFacture}>
+              <FileText className="h-4 w-4 mr-2" />
+              Générer facture
             </Button>
             <Button onClick={handleDownloadPDF} className="btn-gradient">
               <FileDown className="h-4 w-4 mr-2" />
