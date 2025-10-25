@@ -107,9 +107,20 @@ export default function InterventionsDevis() {
 
       if (error) throw error;
 
+      if (data.html) {
+        const printWindow = window.open("", "_blank");
+        if (printWindow) {
+          printWindow.document.write(data.html);
+          printWindow.document.close();
+          printWindow.onload = () => {
+            printWindow.print();
+          };
+        }
+      }
+
       toast({
-        title: "Téléchargement réussi",
-        description: "Le devis a été téléchargé au format PDF",
+        title: "PDF généré",
+        description: "Fenêtre d'impression ouverte",
       });
     } catch (error: any) {
       toast({

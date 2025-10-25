@@ -200,12 +200,14 @@ export default function FactureDetail() {
           title: "Succès",
           description: "Facture mise à jour avec succès",
         });
-        navigate("/interventions-devis");
+        navigate(`/facture/preview/${id}`);
       }
     } else {
-      const { error } = await supabase
+      const { data: newFacture, error } = await supabase
         .from("factures")
-        .insert(factureData);
+        .insert(factureData)
+        .select()
+        .single();
 
       if (error) {
         toast({
@@ -218,7 +220,7 @@ export default function FactureDetail() {
           title: "Succès",
           description: "Facture créée avec succès",
         });
-        navigate("/interventions-devis");
+        navigate(`/facture/preview/${newFacture.id}`);
       }
     }
 

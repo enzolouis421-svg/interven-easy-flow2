@@ -127,7 +127,7 @@ export default function DevisPreview() {
         description: "La facture a été générée à partir du devis",
       });
 
-      navigate(`/factures/${factureData.id}`);
+      navigate(`/facture/preview/${factureData.id}`);
     } catch (error: any) {
       toast({
         variant: "destructive",
