@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Mail, Phone, MapPin, Trash2, Edit, Bell } from "lucide-react";
+import { formatPhoneNumber } from "@/lib/formatters";
 
 interface Client {
   id: string;
@@ -235,9 +236,10 @@ export default function Clients() {
                   id="telephone"
                   type="tel"
                   value={formData.telephone}
-                  onChange={(e) =>
-                    setFormData({ ...formData, telephone: e.target.value })
-                  }
+                  onChange={(e) => {
+                    const formatted = formatPhoneNumber(e.target.value);
+                    setFormData({ ...formData, telephone: formatted });
+                  }}
                 />
               </div>
               <div className="space-y-2">

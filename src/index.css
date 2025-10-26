@@ -213,6 +213,7 @@ All colors MUST be HSL.
   .signature-canvas {
     @apply bg-white border-2 border-gray-300 rounded-lg cursor-crosshair;
     touch-action: none;
+    font-family: 'Caveat', cursive !important;
   }
 
   .signature-legal-text {

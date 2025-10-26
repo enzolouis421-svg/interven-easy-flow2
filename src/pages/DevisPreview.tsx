@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Edit, FileDown, FileText } from "lucide-react";
+import { ArrowLeft, Edit, FileDown, FileText, Mail, Bell } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function DevisPreview() {
@@ -137,6 +137,52 @@ export default function DevisPreview() {
     }
   };
 
+  const handleSendEmail = () => {
+    if (!client?.email) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Ce client n'a pas d'adresse email.",
+      });
+      return;
+    }
+
+    const subject = encodeURIComponent(`Devis ${devis.reference}`);
+    const body = encodeURIComponent(
+      `Bonjour ${client.prenom || ""} ${client.nom},\n\n` +
+      `Veuillez trouver ci-joint votre devis ${devis.reference}.\n\n` +
+      `N'hésitez pas à me contacter pour toute question.\n\n` +
+      `Cordialement`
+    );
+
+    window.location.href = `mailto:${client.email}?subject=${subject}&body=${body}`;
+  };
+
+  const handleRelance = () => {
+    if (!client?.email) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Ce client n'a pas d'adresse email.",
+      });
+      return;
+    }
+
+    const dateEnvoi = new Date(devis.date_creation).toLocaleDateString("fr-FR");
+    const subject = encodeURIComponent(`Relance concernant votre devis ${devis.reference}`);
+    const body = encodeURIComponent(
+      `Bonjour ${client.prenom || ""},\n\n` +
+      `Je me permets de revenir vers vous au sujet du devis que je vous ai envoyé le ${dateEnvoi}.\n\n` +
+      `Avez-vous pu en prendre connaissance ?\n\n` +
+      `N'hésitez pas à me dire si vous souhaitez en discuter ou ajuster certains points, je reste à votre disposition.\n\n` +
+      `Bien cordialement,\n` +
+      `${company?.nom_entreprise || ""}\n` +
+      `${company?.telephone || ""}`
+    );
+
+    window.location.href = `mailto:${client.email}?subject=${subject}&body=${body}`;
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -164,18 +210,26 @@ export default function DevisPreview() {
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => navigate(`/devis/${id}`)}>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={() => navigate(`/devis/${id}`)} className="hidden md:flex">
               <Edit className="h-4 w-4 mr-2" />
               Modifier
             </Button>
-            <Button variant="outline" onClick={handleGenerateFacture}>
+            <Button variant="outline" size="sm" onClick={handleSendEmail}>
+              <Mail className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Envoyer</span>
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleRelance}>
+              <Bell className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Relancer</span>
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleGenerateFacture} className="hidden md:flex">
               <FileText className="h-4 w-4 mr-2" />
               Générer facture
             </Button>
-            <Button onClick={handleDownloadPDF} className="btn-gradient">
-              <FileDown className="h-4 w-4 mr-2" />
-              Télécharger PDF
+            <Button size="sm" onClick={handleDownloadPDF} className="btn-gradient">
+              <FileDown className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Télécharger PDF</span>
             </Button>
           </div>
         </div>

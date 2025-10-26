@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Save, Upload } from "lucide-react";
+import { formatPhoneNumber } from "@/lib/formatters";
 
 export default function Settings() {
   const [loading, setLoading] = useState(false);
@@ -243,9 +244,10 @@ export default function Settings() {
                 id="telephone"
                 type="tel"
                 value={formData.telephone}
-                onChange={(e) =>
-                  setFormData({ ...formData, telephone: e.target.value })
-                }
+                onChange={(e) => {
+                  const formatted = formatPhoneNumber(e.target.value);
+                  setFormData({ ...formData, telephone: formatted });
+                }}
               />
             </div>
 

@@ -619,6 +619,7 @@ export default function DevisDetail() {
                 ref={signaturePadRef}
                 canvasProps={{
                   className: "signature-canvas w-full h-64",
+                  style: { fontFamily: "'Caveat', cursive" }
                 }}
               />
             </div>

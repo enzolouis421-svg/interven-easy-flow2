@@ -480,6 +480,7 @@ export default function InterventionDetail() {
                   ref={signatureRef}
                   canvasProps={{
                     className: "signature-canvas w-full h-32",
+                    style: { fontFamily: "'Caveat', cursive" }
                   }}
                 />
                 <p className="signature-legal-text">
