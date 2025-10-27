@@ -62,6 +62,9 @@ export default function DevisPreview() {
   };
 
   const handleDownloadPDF = async () => {
+    // Ouvrir la fenêtre AVANT l'appel async pour éviter le blocage de popup
+    const printWindow = window.open("", "_blank");
+    
     try {
       const { data, error } = await supabase.functions.invoke("generate-pdf", {
         body: { type: "devis", id },
@@ -69,15 +72,12 @@ export default function DevisPreview() {
 
       if (error) throw error;
 
-      if (data.html) {
-        const printWindow = window.open("", "_blank");
-        if (printWindow) {
-          printWindow.document.write(data.html);
-          printWindow.document.close();
-          printWindow.onload = () => {
-            printWindow.print();
-          };
-        }
+      if (data.html && printWindow) {
+        printWindow.document.write(data.html);
+        printWindow.document.close();
+        printWindow.onload = () => {
+          printWindow.print();
+        };
       }
 
       toast({
@@ -85,6 +85,7 @@ export default function DevisPreview() {
         description: "Fenêtre d'impression ouverte",
       });
     } catch (error: any) {
+      if (printWindow) printWindow.close();
       toast({
         variant: "destructive",
         title: "Erreur",
@@ -152,7 +153,10 @@ export default function DevisPreview() {
       `Bonjour ${client.prenom || ""} ${client.nom},\n\n` +
       `Veuillez trouver ci-joint votre devis ${devis.reference}.\n\n` +
       `N'hésitez pas à me contacter pour toute question.\n\n` +
-      `Cordialement`
+      `Cordialement,\n` +
+      `${company?.nom_entreprise || ""}\n` +
+      `${company?.email || ""}\n` +
+      `${company?.telephone || ""}`
     );
 
     window.location.href = `mailto:${client.email}?subject=${subject}&body=${body}`;
@@ -223,9 +227,9 @@ export default function DevisPreview() {
               <Bell className="h-4 w-4 md:mr-2" />
               <span className="hidden md:inline">Relancer</span>
             </Button>
-            <Button variant="outline" size="sm" onClick={handleGenerateFacture} className="hidden md:flex">
-              <FileText className="h-4 w-4 mr-2" />
-              Générer facture
+            <Button variant="outline" size="sm" onClick={handleGenerateFacture}>
+              <FileText className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Générer facture</span>
             </Button>
             <Button size="sm" onClick={handleDownloadPDF} className="btn-gradient">
               <FileDown className="h-4 w-4 md:mr-2" />

@@ -414,6 +414,11 @@ function generateFactureHTML(data: any) {
         <h3>Conditions de paiement</h3>
         <div>${data.conditions_paiement || 'Paiement à réception de facture'}</div>
         
+        <div style="margin-top: 12px; padding: 12px; background: #fef2f2; border-left: 3px solid #dc2626; border-radius: 4px;">
+          <strong style="color: #dc2626;">Pénalités de retard:</strong><br/>
+          En cas de non-paiement sous un mois à compter de la date d'échéance, des pénalités de retard seront appliquées conformément aux dispositions légales en vigueur.
+        </div>
+        
         ${data.notes ? `
         <div class="notes-block">
           <strong>Notes:</strong><br/>

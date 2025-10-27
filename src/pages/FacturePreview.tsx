@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Download, Edit } from "lucide-react";
+import { ArrowLeft, Download, Edit, Bell } from "lucide-react";
 
 export default function FacturePreview() {
   const navigate = useNavigate();
@@ -61,6 +61,9 @@ export default function FacturePreview() {
   };
 
   const handleDownloadPDF = async () => {
+    // Ouvrir la fenêtre AVANT l'appel async pour éviter le blocage de popup
+    const printWindow = window.open("", "_blank");
+    
     toast({
       title: "Génération du PDF",
       description: "Le PDF de la facture est en cours de génération...",
@@ -71,6 +74,7 @@ export default function FacturePreview() {
     });
 
     if (error) {
+      if (printWindow) printWindow.close();
       toast({
         title: "Erreur",
         description: "Impossible de générer le PDF",
@@ -79,12 +83,37 @@ export default function FacturePreview() {
       return;
     }
 
-    const printWindow = window.open("", "_blank");
-    if (printWindow) {
+    if (printWindow && data.html) {
       printWindow.document.write(data.html);
       printWindow.document.close();
       printWindow.print();
     }
+  };
+
+  const handleRelance = () => {
+    if (!client?.email) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Ce client n'a pas d'adresse email.",
+      });
+      return;
+    }
+
+    const dateEmission = new Date(facture.date_emission).toLocaleDateString("fr-FR");
+    const subject = encodeURIComponent(`Relance concernant votre facture ${facture.reference}`);
+    const body = encodeURIComponent(
+      `Bonjour ${client.prenom || ""},\n\n` +
+      `Je me permets de revenir vers vous au sujet de la facture que je vous ai envoyée le ${dateEmission}.\n\n` +
+      `Avez-vous pu en prendre connaissance ?\n\n` +
+      `N'hésitez pas à me dire si vous souhaitez en discuter ou ajuster certains points, je reste à votre disposition.\n\n` +
+      `Bien cordialement,\n` +
+      `${company?.nom_entreprise || ""}\n` +
+      `${company?.email || ""}\n` +
+      `${company?.telephone || ""}`
+    );
+
+    window.location.href = `mailto:${client.email}?subject=${subject}&body=${body}`;
   };
 
   if (loading) {
@@ -116,6 +145,10 @@ export default function FacturePreview() {
           <Button variant="outline" onClick={() => navigate(`/facture/${id}/edit`)}>
             <Edit className="h-4 w-4 mr-2" />
             Modifier
+          </Button>
+          <Button variant="outline" onClick={handleRelance}>
+            <Bell className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">Relancer</span>
           </Button>
           <Button onClick={handleDownloadPDF}>
             <Download className="h-4 w-4 mr-2" />
