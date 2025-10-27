@@ -7,9 +7,6 @@ import { DashboardLayout } from "./components/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
 import InterventionDetail from "./pages/InterventionDetail";
 import Clients from "./pages/Clients";
-import Techniciens from "./pages/Techniciens";
-import TechnicienProfile from "./pages/TechnicienProfile";
-import AssistantAI from "./pages/AssistantAI";
 import Calendar from "./pages/Calendar";
 import Settings from "./pages/Settings";
 import DevisDetail from "./pages/DevisDetail";
@@ -113,34 +110,10 @@ const App = () => (
             }
           />
           <Route
-            path="/assistant"
-            element={
-              <DashboardLayout>
-                <AssistantAI />
-              </DashboardLayout>
-            }
-          />
-          <Route
             path="/settings"
             element={
               <DashboardLayout>
                 <Settings />
-              </DashboardLayout>
-            }
-          />
-          <Route
-            path="/techniciens"
-            element={
-              <DashboardLayout>
-                <Techniciens />
-              </DashboardLayout>
-            }
-          />
-          <Route
-            path="/techniciens/:id"
-            element={
-              <DashboardLayout>
-                <TechnicienProfile />
               </DashboardLayout>
             }
           />

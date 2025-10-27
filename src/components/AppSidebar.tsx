@@ -20,9 +20,7 @@ const menuItems = [
   { title: "Tableau de bord", url: "/dashboard", icon: Home },
   { title: "Interventions & Devis", url: "/interventions-devis", icon: ClipboardList },
   { title: "Clients", url: "/clients", icon: Users },
-  { title: "Techniciens", url: "/techniciens", icon: Wrench },
   { title: "Calendrier", url: "/calendar", icon: Calendar },
-  { title: "Assistant IA", url: "/assistant", icon: Bot },
   { title: "Paramètres", url: "/settings", icon: Settings },
 ];
 
