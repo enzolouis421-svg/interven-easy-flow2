@@ -25,8 +25,7 @@ serve(async (req) => {
         .from('interventions')
         .select(`
           *,
-          clients(nom, prenom, email, telephone, adresse),
-          techniciens(nom, prenom, email, telephone)
+          clients(nom, prenom, email, telephone, adresse, code_postal, ville, entreprise)
         `)
         .eq('id', id)
         .single();
@@ -35,6 +34,17 @@ serve(async (req) => {
       error = result.error;
 
       if (error) throw error;
+
+      // Récupérer les paramètres entreprise
+      if (data && data.user_id) {
+        const { data: companyData } = await supabase
+          .from('company_settings')
+          .select('*')
+          .eq('user_id', data.user_id)
+          .single();
+        
+        data.company_settings = companyData;
+      }
 
       const htmlContent = generateInterventionHTML(data);
 
@@ -144,61 +154,287 @@ serve(async (req) => {
 });
 
 function generateInterventionHTML(data: any) {
+  const statusLabels = {
+    a_faire: "À faire",
+    en_cours: "En cours",
+    termine: "Terminée"
+  };
+  
+  const formatDate = (date: string) => {
+    if (!date) return 'Non définie';
+    return new Date(date).toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
   return `
     <!DOCTYPE html>
     <html>
     <head>
       <meta charset="UTF-8">
+      <title>Intervention - ${data.titre || 'Sans titre'}</title>
       <style>
-        body { font-family: Arial, sans-serif; padding: 40px; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .section { margin: 20px 0; }
-        .label { font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        
+        @page {
+          size: A4;
+          margin: 0;
+        }
+        
+        body { 
+          font-family: Arial, sans-serif;
+          color: #000;
+          background: white;
+          padding: 0;
+          margin: 0;
+        }
+        
+        .container {
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 48px;
+          background: white;
+        }
+        
+        .header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 32px;
+          padding-bottom: 32px;
+          border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .company-info {
+          flex: 1;
+        }
+        
+        .company-logo {
+          height: 64px;
+          margin-bottom: 16px;
+        }
+        
+        .company-name {
+          font-size: 20px;
+          font-weight: bold;
+          margin-bottom: 8px;
+        }
+        
+        .company-details {
+          font-size: 14px;
+          color: #6b7280;
+          line-height: 1.6;
+        }
+        
+        .intervention-info {
+          text-align: right;
+          flex: 1;
+        }
+        
+        .intervention-title {
+          font-size: 32px;
+          font-weight: bold;
+          color: #2563eb;
+          margin-bottom: 8px;
+        }
+        
+        .intervention-meta {
+          font-size: 14px;
+          line-height: 1.6;
+        }
+        
+        .intervention-meta strong {
+          color: #374151;
+        }
+        
+        .section {
+          margin-bottom: 24px;
+        }
+        
+        .section-title {
+          font-size: 18px;
+          font-weight: bold;
+          margin-bottom: 8px;
+          color: #111827;
+        }
+        
+        .client-box {
+          background: #f9fafb;
+          padding: 16px;
+          border-radius: 8px;
+          font-size: 14px;
+          line-height: 1.6;
+        }
+        
+        .client-box strong {
+          font-size: 16px;
+          display: block;
+          margin-bottom: 4px;
+        }
+        
+        .content-text {
+          color: #374151;
+          font-size: 14px;
+          line-height: 1.8;
+          white-space: pre-wrap;
+        }
+        
+        .photos-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 16px;
+          margin-top: 16px;
+        }
+        
+        .photo-item {
+          width: 100%;
+          height: 192px;
+          object-fit: cover;
+          border-radius: 8px;
+          border: 1px solid #e5e7eb;
+        }
+        
+        .signature-section {
+          margin-top: 32px;
+          padding-top: 32px;
+          border-top: 2px solid #e5e7eb;
+        }
+        
+        .signature-box {
+          border: 2px solid #d1d5db;
+          border-radius: 8px;
+          padding: 16px;
+          display: inline-block;
+          background: #f9fafb;
+        }
+        
+        .signature-image {
+          max-height: 128px;
+          max-width: 400px;
+        }
+        
+        .signature-label {
+          font-size: 12px;
+          color: #6b7280;
+          margin-top: 8px;
+          font-style: italic;
+        }
+        
+        @media print {
+          body {
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+          }
+          
+          .container {
+            padding: 20px;
+          }
+        }
       </style>
     </head>
     <body>
-      <div class="header">
-        <h1>Rapport d'Intervention</h1>
-        <p>N° ${data.id}</p>
+      <div class="container">
+        <!-- Header -->
+        <div class="header">
+          <div class="company-info">
+            ${data.company_settings?.logo_url ? `
+              <img src="${data.company_settings.logo_url}" alt="Logo" class="company-logo" />
+            ` : ''}
+            <div class="company-name">${data.company_settings?.nom_entreprise || 'Entreprise'}</div>
+            <div class="company-details">
+              ${data.company_settings?.adresse || ''}<br/>
+              ${data.company_settings?.code_postal || ''} ${data.company_settings?.ville || ''}<br/>
+              ${data.company_settings?.siret ? 'SIRET: ' + data.company_settings.siret + '<br/>' : ''}
+              ${data.company_settings?.telephone || ''}<br/>
+              ${data.company_settings?.email || ''}
+            </div>
+          </div>
+          <div class="intervention-info">
+            <div class="intervention-title">INTERVENTION</div>
+            <div class="intervention-meta">
+              <strong>Date:</strong> ${formatDate(data.date_intervention)}<br/>
+              <strong>Statut:</strong> ${statusLabels[data.statut as keyof typeof statusLabels] || data.statut}
+            </div>
+          </div>
+        </div>
+
+        <!-- Client Info -->
+        ${data.clients ? `
+        <div class="section">
+          <div class="section-title">Client</div>
+          <div class="client-box">
+            <strong>${data.clients.entreprise || `${data.clients.prenom || ''} ${data.clients.nom || ''}`}</strong>
+            ${data.clients.adresse ? data.clients.adresse + '<br/>' : ''}
+            ${data.clients.code_postal || data.clients.ville ? `${data.clients.code_postal || ''} ${data.clients.ville || ''}<br/>` : ''}
+            ${data.clients.email ? data.clients.email + '<br/>' : ''}
+            ${data.clients.telephone ? data.clients.telephone : ''}
+          </div>
+        </div>
+        ` : ''}
+
+        <!-- Intervention Details -->
+        <div class="section">
+          <div class="section-title">Titre</div>
+          <div class="content-text">${data.titre || 'Sans titre'}</div>
+        </div>
+
+        ${data.adresse ? `
+        <div class="section">
+          <div class="section-title">Adresse d'intervention</div>
+          <div class="content-text">${data.adresse}</div>
+        </div>
+        ` : ''}
+
+        ${data.description ? `
+        <div class="section">
+          <div class="section-title">Description du problème</div>
+          <div class="content-text">${data.description}</div>
+        </div>
+        ` : ''}
+
+        ${data.materiel_utilise ? `
+        <div class="section">
+          <div class="section-title">Matériel utilisé</div>
+          <div class="content-text">${data.materiel_utilise}</div>
+        </div>
+        ` : ''}
+
+        ${data.commentaire_technicien ? `
+        <div class="section">
+          <div class="section-title">Commentaire du technicien</div>
+          <div class="content-text">${data.commentaire_technicien}</div>
+        </div>
+        ` : ''}
+
+        ${data.photos && data.photos.length > 0 ? `
+        <div class="section">
+          <div class="section-title">Photos</div>
+          <div class="photos-grid">
+            ${data.photos.map((url: string) => `
+              <img src="${url}" alt="Photo intervention" class="photo-item" />
+            `).join('')}
+          </div>
+        </div>
+        ` : ''}
+
+        ${data.signature_url ? `
+        <div class="signature-section">
+          <div class="section-title">Signature client</div>
+          <div class="signature-box">
+            <img src="${data.signature_url}" alt="Signature client" class="signature-image" />
+          </div>
+          <div class="signature-label">
+            Signature électronique conforme au règlement eIDAS (UE) n°910/2014
+          </div>
+        </div>
+        ` : ''}
       </div>
-      
-      <div class="section">
-        <p><span class="label">Titre:</span> ${data.titre}</p>
-        <p><span class="label">Date:</span> ${new Date(data.date_intervention).toLocaleDateString('fr-FR')}</p>
-        <p><span class="label">Statut:</span> ${data.statut}</p>
-      </div>
-      
-      <div class="section">
-        <h2>Client</h2>
-        <p>${data.clients?.prenom} ${data.clients?.nom}</p>
-        <p>${data.clients?.email || ''}</p>
-        <p>${data.clients?.telephone || ''}</p>
-        <p>${data.adresse}</p>
-      </div>
-      
-      <div class="section">
-        <h2>Description</h2>
-        <p>${data.description || ''}</p>
-      </div>
-      
-      <div class="section">
-        <h2>Matériel utilisé</h2>
-        <p>${data.materiel_utilise || 'Aucun'}</p>
-      </div>
-      
-      <div class="section">
-        <h2>Commentaires</h2>
-        <p>${data.commentaire_technicien || 'Aucun commentaire'}</p>
-      </div>
-      
-      ${data.signature_url ? `
-      <div class="section">
-        <h2>Signature du client</h2>
-        <img src="${data.signature_url}" style="max-width: 300px;" />
-      </div>
-      ` : ''}
     </body>
     </html>
   `;
@@ -214,6 +450,7 @@ function generateFactureHTML(data: any) {
     <html>
     <head>
       <meta charset="UTF-8">
+      <title>Facture - ${data.reference || 'REF'}</title>
       <style>
         body { 
           font-family: Arial, sans-serif; 
@@ -444,6 +681,8 @@ function generateDevisHTML(data: any) {
     <html>
     <head>
       <meta charset="UTF-8">
+      <title>Devis - ${data.reference || 'REF'}</title>
+      <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
       <style>
         body { 
           font-family: Arial, sans-serif; 
@@ -569,6 +808,8 @@ function generateDevisHTML(data: any) {
         .signature-label {
           font-size: 9px;
           color: #6b7280;
+          font-family: 'Dancing Script', cursive;
+          font-weight: 700;
         }
         .bon-pour-accord {
           text-align: center;
@@ -577,6 +818,13 @@ function generateDevisHTML(data: any) {
           font-weight: bold;
           font-size: 11px;
           color: #374151;
+        }
+        .legal-notice {
+          font-size: 8px;
+          color: #6b7280;
+          text-align: center;
+          margin-top: 15px;
+          font-style: italic;
         }
       </style>
     </head>
@@ -670,6 +918,10 @@ function generateDevisHTML(data: any) {
 
       <div class="bon-pour-accord">
         Bon pour accord
+      </div>
+      
+      <div class="legal-notice">
+        Signature électronique conforme au règlement eIDAS (UE) n°910/2014 sur l'identification électronique et les services de confiance
       </div>
     </body>
     </html>
