@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Plus, FileText, Trash2, Eye, Download, Edit } from "lucide-react";
+import { Plus, FileText, Trash2, Eye, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -96,70 +96,6 @@ export default function InterventionsDevis() {
     } else {
       toast({ title: "Devis supprimé", description: "Le devis a été supprimé avec succès." });
       loadData();
-    }
-  };
-
-  const handleDownloadDevisPDF = async (id: string) => {
-    try {
-      const { data, error } = await supabase.functions.invoke("generate-pdf", {
-        body: { type: "devis", id },
-      });
-
-      if (error) throw error;
-
-      if (data.html) {
-        const printWindow = window.open("", "_blank");
-        if (printWindow) {
-          printWindow.document.write(data.html);
-          printWindow.document.close();
-          printWindow.onload = () => {
-            printWindow.print();
-          };
-        }
-      }
-
-      toast({
-        title: "PDF généré",
-        description: "Fenêtre d'impression ouverte",
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: error.message,
-      });
-    }
-  };
-
-  const handleDownloadInterventionPDF = async (id: string) => {
-    try {
-      const { data, error } = await supabase.functions.invoke("generate-pdf", {
-        body: { type: "intervention", id },
-      });
-
-      if (error) throw error;
-
-      if (data.html) {
-        const printWindow = window.open("", "_blank");
-        if (printWindow) {
-          printWindow.document.write(data.html);
-          printWindow.document.close();
-          printWindow.onload = () => {
-            printWindow.print();
-          };
-        }
-      }
-
-      toast({
-        title: "PDF généré",
-        description: "Fenêtre d'impression ouverte",
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: error.message,
-      });
     }
   };
 
@@ -301,11 +237,11 @@ export default function InterventionsDevis() {
                     </Badge>
                   </div>
                   <div className="flex gap-1 flex-shrink-0">
-                    <Button variant="ghost" size="icon" onClick={() => navigate(`/interventions/${intervention.id}`)} className="hover:bg-primary/10 hover:text-primary h-8 w-8" title="Voir">
+                    <Button variant="ghost" size="icon" onClick={() => navigate(`/interventions/preview/${intervention.id}`)} className="hover:bg-primary/10 hover:text-primary h-8 w-8" title="Voir">
                       <Eye className="h-3.5 w-3.5" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDownloadInterventionPDF(intervention.id)} className="hover:bg-accent/10 hover:text-accent h-8 w-8" title="Télécharger PDF">
-                      <Download className="h-3.5 w-3.5" />
+                    <Button variant="ghost" size="icon" onClick={() => navigate(`/interventions/${intervention.id}`)} className="hover:bg-secondary/10 hover:text-secondary h-8 w-8" title="Modifier">
+                      <Edit className="h-3.5 w-3.5" />
                     </Button>
                     <Button variant="ghost" size="icon" onClick={() => handleDeleteIntervention(intervention.id)} className="hover:bg-destructive/10 hover:text-destructive h-8 w-8" title="Supprimer">
                       <Trash2 className="h-3.5 w-3.5" />
@@ -355,10 +291,7 @@ export default function InterventionsDevis() {
                       <Eye className="h-3.5 w-3.5" />
                     </Button>
                     <Button variant="ghost" size="icon" onClick={() => navigate(`/devis/${d.id}`)} className="hover:bg-primary/10 hover:text-primary h-8 w-8" title="Modifier">
-                      <FileText className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDownloadDevisPDF(d.id)} className="hover:bg-accent/10 hover:text-accent h-8 w-8" title="Télécharger PDF">
-                      <Download className="h-3.5 w-3.5" />
+                      <Edit className="h-3.5 w-3.5" />
                     </Button>
                     <Button variant="ghost" size="icon" onClick={() => handleDeleteDevis(d.id)} className="hover:bg-destructive/10 hover:text-destructive h-8 w-8" title="Supprimer">
                       <Trash2 className="h-3.5 w-3.5" />

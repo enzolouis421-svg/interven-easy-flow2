@@ -182,6 +182,7 @@ export default function InterventionDetail() {
 
     const dataToSave = {
       ...formData,
+      client_id: formData.client_id || null, // Éviter l'erreur UUID avec chaîne vide
       signature_url: signatureUrl,
       user_id: user.id,
     };
@@ -486,8 +487,8 @@ export default function InterventionDetail() {
                     style: { fontFamily: "'Caveat', cursive" }
                   }}
                 />
-                <p className="signature-legal-text">
-                  Signature électronique à valeur légale
+                <p className="text-xs text-muted-foreground mt-2 text-center">
+                  J'accepte les conditions et confirme la réalisation de l'intervention (signature électronique conforme au règlement eIDAS)
                 </p>
                 <Button
                   type="button"

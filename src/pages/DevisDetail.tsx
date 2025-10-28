@@ -206,6 +206,7 @@ export default function DevisDetail() {
       const devisData = {
         ...devis,
         user_id: user.id,
+        client_id: devis.client_id || null, // Éviter l'erreur UUID avec chaîne vide
         client_nom,
         lignes_prestation: JSON.stringify(devis.lignes_prestation),
       };
@@ -233,22 +234,24 @@ export default function DevisDetail() {
     }
 
     try {
+      // Ouvrir la fenêtre AVANT l'appel async pour éviter le blocage
+      const printWindow = window.open("", "_blank");
+      
       const { data, error } = await supabase.functions.invoke("generate-pdf", {
         body: { type: "devis", id },
       });
 
-      if (error) throw error;
+      if (error) {
+        if (printWindow) printWindow.close();
+        throw error;
+      }
 
-      if (data?.html) {
-        // Créer un blob avec le contenu HTML
-        const printWindow = window.open("", "_blank");
-        if (printWindow) {
-          printWindow.document.write(data.html);
-          printWindow.document.close();
-          printWindow.onload = () => {
-            printWindow.print();
-          };
-        }
+      if (data?.html && printWindow) {
+        printWindow.document.write(data.html);
+        printWindow.document.close();
+        printWindow.onload = () => {
+          printWindow.print();
+        };
       }
 
       toast({ title: "PDF généré", description: "Fenêtre d'impression ouverte" });
@@ -623,8 +626,8 @@ export default function DevisDetail() {
                 }}
               />
             </div>
-            <p className="signature-legal-text">
-              Je certifie que cette signature électronique a la même valeur juridique qu'une signature manuscrite
+            <p className="text-xs text-muted-foreground mt-2 text-center">
+              J'accepte les termes de ce devis et m'engage juridiquement (signature électronique conforme au règlement eIDAS)
             </p>
             <div className="flex gap-2">
               <Button

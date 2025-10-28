@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { DashboardLayout } from "./components/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
 import InterventionDetail from "./pages/InterventionDetail";
+import InterventionPreview from "./pages/InterventionPreview";
 import Clients from "./pages/Clients";
 import Calendar from "./pages/Calendar";
 import Settings from "./pages/Settings";
@@ -50,6 +51,14 @@ const App = () => (
             element={
               <DashboardLayout>
                 <InterventionDetail />
+              </DashboardLayout>
+            }
+          />
+          <Route
+            path="/interventions/preview/:id"
+            element={
+              <DashboardLayout>
+                <InterventionPreview />
               </DashboardLayout>
             }
           />
