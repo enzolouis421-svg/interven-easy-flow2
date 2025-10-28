@@ -207,7 +207,7 @@ export default function InterventionDetail() {
         title: "Succès",
         description: "Intervention enregistrée",
       });
-      navigate("/interventions");
+      navigate("/interventions-devis");
     }
     setLoading(false);
   };
@@ -234,24 +234,27 @@ export default function InterventionDetail() {
     }
 
     try {
+      // Ouvrir la fenêtre AVANT l'appel asynchrone pour éviter le blocage
+      const printWindow = window.open("", "_blank");
+      
       const { data, error } = await supabase.functions.invoke("generate-pdf", {
         body: { type: "intervention", id },
       });
 
-      if (error) throw error;
+      if (error) {
+        if (printWindow) printWindow.close();
+        throw error;
+      }
 
-      // Ouvrir le HTML dans une nouvelle fenêtre pour l'imprimer en PDF
-      if (data.html) {
-        const printWindow = window.open("", "_blank");
-        if (printWindow) {
-          printWindow.document.write(data.html);
-          printWindow.document.close();
-          
-          // Attendre que le contenu soit chargé avant d'ouvrir la boîte de dialogue d'impression
-          printWindow.onload = () => {
-            printWindow.print();
-          };
-        }
+      // Écrire le contenu dans la fenêtre déjà ouverte
+      if (data.html && printWindow) {
+        printWindow.document.write(data.html);
+        printWindow.document.close();
+        
+        // Attendre que le contenu soit chargé avant d'ouvrir la boîte de dialogue d'impression
+        printWindow.onload = () => {
+          printWindow.print();
+        };
       }
 
       toast({
