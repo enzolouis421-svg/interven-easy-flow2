@@ -174,7 +174,8 @@ function generateInterventionHTML(data: any) {
     <html>
     <head>
       <meta charset="UTF-8">
-      <title>Intervention - ${data.titre || 'Sans titre'}</title>
+      <title>Intervention - ${data.titre || 'Sans titre'} - ${formatDate(data.date_intervention)}</title>
+      <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
       <style>
         * {
           margin: 0;
@@ -323,7 +324,8 @@ function generateInterventionHTML(data: any) {
           font-size: 12px;
           color: #6b7280;
           margin-top: 8px;
-          font-style: italic;
+          font-family: 'Dancing Script', cursive;
+          font-weight: 700;
         }
         
         @media print {
@@ -334,6 +336,10 @@ function generateInterventionHTML(data: any) {
           
           .container {
             padding: 20px;
+          }
+          
+          @page {
+            margin: 20mm;
           }
         }
       </style>
@@ -430,11 +436,21 @@ function generateInterventionHTML(data: any) {
             <img src="${data.signature_url}" alt="Signature client" class="signature-image" />
           </div>
           <div class="signature-label">
-            Signature électronique conforme au règlement eIDAS (UE) n°910/2014
+            Signature électronique conforme au règlement eIDAS (UE) n°910/2014 sur l'identification électronique et les services de confiance
           </div>
         </div>
         ` : ''}
       </div>
+      
+      <script>
+        // Déclencher l'impression automatiquement et définir le nom de fichier
+        window.onload = function() {
+          document.title = 'Intervention_${data.titre?.replace(/[^a-zA-Z0-9]/g, '_')}_${formatDate(data.date_intervention).replace(/[^a-zA-Z0-9]/g, '_')}';
+          setTimeout(function() {
+            window.print();
+          }, 500);
+        };
+      </script>
     </body>
     </html>
   `;
@@ -450,7 +466,8 @@ function generateFactureHTML(data: any) {
     <html>
     <head>
       <meta charset="UTF-8">
-      <title>Facture - ${data.reference || 'REF'}</title>
+      <title>Facture_${data.reference?.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date(data.date_emission).toLocaleDateString('fr-FR').replace(/\//g, '-')}</title>
+      <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
       <style>
         body { 
           font-family: Arial, sans-serif; 
@@ -663,6 +680,14 @@ function generateFactureHTML(data: any) {
         </div>
         ` : ''}
       </div>
+      
+      <script>
+        window.onload = function() {
+          setTimeout(function() {
+            window.print();
+          }, 500);
+        };
+      </script>
     </body>
     </html>
   `;
@@ -681,7 +706,7 @@ function generateDevisHTML(data: any) {
     <html>
     <head>
       <meta charset="UTF-8">
-      <title>Devis - ${data.reference || 'REF'}</title>
+      <title>Devis_${data.reference?.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date(data.date_creation).toLocaleDateString('fr-FR').replace(/\//g, '-')}</title>
       <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
       <style>
         body { 
@@ -906,13 +931,26 @@ function generateDevisHTML(data: any) {
       <div class="signatures">
         <div class="signature-box">
           <h4>Signature de l'entreprise</h4>
-          <div class="signature-line"></div>
+          ${data.company_signature_url ? `
+            <img src="${data.company_signature_url}" alt="Signature entreprise" style="max-height: 80px; margin: 10px auto;" />
+          ` : `
+            <div class="signature-line"></div>
+          `}
           <div class="signature-label">${data.company_settings?.nom_entreprise || 'Votre Entreprise'}</div>
         </div>
         <div class="signature-box">
           <h4>Signature du client</h4>
-          <div class="signature-line"></div>
+          ${data.client_signature_url ? `
+            <img src="${data.client_signature_url}" alt="Signature client" style="max-height: 80px; margin: 10px auto;" />
+          ` : `
+            <div class="signature-line"></div>
+          `}
           <div class="signature-label">${data.client_nom || 'Client'}</div>
+          ${data.date_signature ? `
+            <div style="margin-top: 8px; font-size: 9px; color: #6b7280;">
+              Signé le ${new Date(data.date_signature).toLocaleDateString('fr-FR')}
+            </div>
+          ` : ''}
         </div>
       </div>
 
@@ -923,6 +961,14 @@ function generateDevisHTML(data: any) {
       <div class="legal-notice">
         Signature électronique conforme au règlement eIDAS (UE) n°910/2014 sur l'identification électronique et les services de confiance
       </div>
+      
+      <script>
+        window.onload = function() {
+          setTimeout(function() {
+            window.print();
+          }, 500);
+        };
+      </script>
     </body>
     </html>
   `;
