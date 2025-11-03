@@ -175,7 +175,6 @@ function generateInterventionHTML(data: any) {
     <head>
       <meta charset="UTF-8">
       <title>Intervention - ${data.titre || 'Sans titre'} - ${formatDate(data.date_intervention)}</title>
-      <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
       <style>
         * {
           margin: 0;
@@ -324,8 +323,8 @@ function generateInterventionHTML(data: any) {
           font-size: 12px;
           color: #6b7280;
           margin-top: 8px;
-          font-family: 'Dancing Script', cursive;
-          font-weight: 700;
+          font-family: 'Brush Script MT', 'Lucida Handwriting', cursive;
+          font-style: italic;
         }
         
         @media print {
@@ -467,7 +466,6 @@ function generateFactureHTML(data: any) {
     <head>
       <meta charset="UTF-8">
       <title>Facture_${data.reference?.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date(data.date_emission).toLocaleDateString('fr-FR').replace(/\//g, '-')}</title>
-      <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
       <style>
         body { 
           font-family: Arial, sans-serif; 
@@ -707,7 +705,6 @@ function generateDevisHTML(data: any) {
     <head>
       <meta charset="UTF-8">
       <title>Devis_${data.reference?.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date(data.date_creation).toLocaleDateString('fr-FR').replace(/\//g, '-')}</title>
-      <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
       <style>
         body { 
           font-family: Arial, sans-serif; 
@@ -833,8 +830,8 @@ function generateDevisHTML(data: any) {
         .signature-label {
           font-size: 9px;
           color: #6b7280;
-          font-family: 'Dancing Script', cursive;
-          font-weight: 700;
+          font-family: 'Brush Script MT', 'Lucida Handwriting', cursive;
+          font-style: italic;
         }
         .bon-pour-accord {
           text-align: center;
