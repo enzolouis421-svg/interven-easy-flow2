@@ -323,7 +323,7 @@ function generateInterventionHTML(data: any) {
           font-size: 12px;
           color: #6b7280;
           margin-top: 8px;
-          font-family: 'Brush Script MT', 'Lucida Handwriting', cursive;
+          font-family: Georgia, 'Times New Roman', serif;
           font-style: italic;
         }
         
@@ -830,7 +830,7 @@ function generateDevisHTML(data: any) {
         .signature-label {
           font-size: 9px;
           color: #6b7280;
-          font-family: 'Brush Script MT', 'Lucida Handwriting', cursive;
+          font-family: Georgia, 'Times New Roman', serif;
           font-style: italic;
         }
         .bon-pour-accord {
