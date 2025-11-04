@@ -141,7 +141,17 @@ export default function Clients() {
 
   const handleRelance = (client: Client) => {
     if (client.email) {
-      window.location.href = `mailto:${client.email}?subject=Relance&body=Bonjour ${client.prenom} ${client.nom},%0D%0A%0D%0ANous vous contactons pour faire un suivi...`;
+      const dateEnvoi = new Date().toLocaleDateString("fr-FR");
+      const subject = encodeURIComponent(`Relance`);
+      const body = encodeURIComponent(
+        `Bonjour ${client.prenom || ""},\n\n` +
+        `Je me permets de revenir vers vous pour faire un suivi.\n\n` +
+        `Avez-vous pu en prendre connaissance ?\n\n` +
+        `N'hésitez pas à me dire si vous souhaitez en discuter ou ajuster certains points, je reste à votre disposition.\n\n` +
+        `Bien cordialement`
+      );
+      
+      window.location.href = `mailto:${client.email}?subject=${subject}&body=${body}`;
       toast({
         title: "Email de relance",
         description: "L'application email s'ouvre pour envoyer une relance.",
