@@ -271,9 +271,19 @@ export default function DevisDetail() {
     }
 
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Utilisateur non authentifié",
+        });
+        return;
+      }
+
       const signatureData = signaturePadRef.current.toDataURL();
       const blob = await (await fetch(signatureData)).blob();
-      const fileName = `signature-${signatureType}-${Date.now()}.png`;
+      const fileName = `${user.id}/signature-${signatureType}-${Date.now()}.png`;
 
       const { data, error } = await supabase.storage
         .from("signatures")
