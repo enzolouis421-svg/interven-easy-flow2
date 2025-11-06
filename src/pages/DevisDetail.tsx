@@ -291,6 +291,10 @@ export default function DevisDetail() {
         date_signature: new Date().toISOString(),
       };
 
+      // Toujours mettre à jour le state local avec les URLs des signatures
+      setDevis((prev: any) => ({ ...prev, ...updateData }));
+
+      // Si le devis existe déjà dans la DB, mettre à jour immédiatement
       if (id && id !== "new") {
         const { error: updateError } = await supabase
           .from("devis")
@@ -300,12 +304,13 @@ export default function DevisDetail() {
         if (updateError) throw updateError;
       }
 
-      setDevis((prev: any) => ({ ...prev, ...updateData }));
       setSignatureDialogOpen(false);
 
       toast({
         title: "Signature enregistrée",
-        description: "La signature a été enregistrée avec succès",
+        description: id === "new" 
+          ? "La signature sera enregistrée lors de la sauvegarde du devis"
+          : "La signature a été enregistrée avec succès",
       });
     } catch (error: any) {
       toast({

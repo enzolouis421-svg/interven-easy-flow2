@@ -138,32 +138,50 @@ export default function InterventionDetail() {
   };
 
   const saveSignature = async () => {
-    if (!signatureRef.current || signatureRef.current.isEmpty()) return null;
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
-
-    const canvas = signatureRef.current.getCanvas();
-    const blob = await new Promise<Blob>((resolve) =>
-      canvas.toBlob((blob) => resolve(blob!), "image/png")
-    );
-
-    const fileName = `${user.id}/${Date.now()}.png`;
-    const { error } = await supabase.storage
-      .from("signatures")
-      .upload(fileName, blob);
-
-    if (error) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de sauvegarder la signature",
-      });
+    if (!signatureRef.current || signatureRef.current.isEmpty()) {
+      console.log("Signature canvas is empty");
       return null;
     }
 
-    const { data } = supabase.storage.from("signatures").getPublicUrl(fileName);
-    return data.publicUrl;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.error("No authenticated user");
+      return null;
+    }
+
+    try {
+      const canvas = signatureRef.current.getCanvas();
+      const blob = await new Promise<Blob>((resolve) =>
+        canvas.toBlob((blob) => resolve(blob!), "image/png")
+      );
+
+      const fileName = `${user.id}/${Date.now()}.png`;
+      const { error } = await supabase.storage
+        .from("signatures")
+        .upload(fileName, blob);
+
+      if (error) {
+        console.error("Storage upload error:", error);
+        toast({
+          variant: "destructive",
+          title: "Erreur de sauvegarde",
+          description: "Impossible de sauvegarder la signature: " + error.message,
+        });
+        return null;
+      }
+
+      const { data } = supabase.storage.from("signatures").getPublicUrl(fileName);
+      console.log("Signature saved successfully:", data.publicUrl);
+      return data.publicUrl;
+    } catch (error: any) {
+      console.error("Unexpected error saving signature:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur inattendue",
+        description: error.message,
+      });
+      return null;
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -171,13 +189,27 @@ export default function InterventionDetail() {
     setLoading(true);
 
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
     // Save signature if present
     let signatureUrl = formData.signature_url;
     if (signatureRef.current && !signatureRef.current.isEmpty()) {
       const url = await saveSignature();
-      if (url) signatureUrl = url;
+      if (url) {
+        signatureUrl = url;
+      } else {
+        // Si la signature n'a pas pu être sauvegardée, demander confirmation
+        const confirmContinue = window.confirm(
+          "La signature n'a pas pu être enregistrée. Voulez-vous continuer sans signature ?"
+        );
+        if (!confirmContinue) {
+          setLoading(false);
+          return;
+        }
+      }
     }
 
     const dataToSave = {
