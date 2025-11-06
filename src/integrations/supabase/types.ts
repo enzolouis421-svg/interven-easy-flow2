@@ -191,6 +191,13 @@ export type Database = {
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_devis_client"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
         ]
       }
       factures: {
@@ -265,6 +272,20 @@ export type Database = {
             referencedRelation: "devis"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_factures_client"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_factures_devis"
+            columns: ["devis_id"]
+            isOneToOne: false
+            referencedRelation: "devis"
+            referencedColumns: ["id"]
+          },
         ]
       }
       interventions: {
@@ -326,6 +347,20 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_interventions_client"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_interventions_technicien"
+            columns: ["technicien_id"]
+            isOneToOne: false
+            referencedRelation: "techniciens"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "interventions_client_id_fkey"
             columns: ["client_id"]
