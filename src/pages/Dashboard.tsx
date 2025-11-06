@@ -39,7 +39,7 @@ export default function Dashboard() {
 
     const { data } = await supabase
       .from("interventions")
-      .select("*, clients(nom, prenom, entreprise)")
+      .select("*, clients!interventions_client_id_fkey(nom, prenom, entreprise)")
       .eq("user_id", user.id)
       .gte("date_intervention", today.toISOString())
       .lt("date_intervention", tomorrow.toISOString())

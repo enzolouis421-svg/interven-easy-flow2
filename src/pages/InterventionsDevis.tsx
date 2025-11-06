@@ -63,7 +63,7 @@ export default function InterventionsDevis() {
     // Charger les interventions
     const { data: interventionsData } = await supabase
       .from("interventions")
-      .select("*, clients(nom, prenom, entreprise)")
+      .select("*, clients!interventions_client_id_fkey(nom, prenom, entreprise)")
       .eq("user_id", user.id)
       .order("date_intervention", { ascending: false });
 
@@ -72,7 +72,7 @@ export default function InterventionsDevis() {
     // Charger les devis
     const { data: devisData } = await supabase
       .from("devis")
-      .select("*, clients(nom, prenom, entreprise)")
+      .select("*, clients!devis_client_id_fkey(nom, prenom, entreprise)")
       .eq("user_id", user.id)
       .order("date_creation", { ascending: false });
 

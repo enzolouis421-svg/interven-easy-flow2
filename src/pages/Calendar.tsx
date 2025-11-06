@@ -41,8 +41,8 @@ export default function Calendar() {
       .from("interventions")
       .select(`
         *,
-        techniciens(nom, prenom),
-        clients(nom, prenom, entreprise)
+        techniciens!interventions_technicien_id_fkey(nom, prenom),
+        clients!interventions_client_id_fkey(nom, prenom, entreprise)
       `)
       .eq("user_id", user.id)
       .gte("date_intervention", currentWeekStart.toISOString())

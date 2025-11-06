@@ -40,7 +40,7 @@ export default function TechnicienProfile() {
       // Load interventions
       const { data: interventionsData, error: intError } = await supabase
         .from("interventions")
-        .select("*, clients(nom, prenom)")
+        .select("*, clients!interventions_client_id_fkey(nom, prenom)")
         .eq("technicien_id", id)
         .order("date_intervention", { ascending: false });
 

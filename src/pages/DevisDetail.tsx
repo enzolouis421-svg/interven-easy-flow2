@@ -109,7 +109,7 @@ export default function DevisDetail() {
   const loadDevis = async () => {
     const { data, error } = await supabase
       .from("devis")
-      .select("*, clients(nom)")
+      .select("*, clients!devis_client_id_fkey(nom)")
       .eq("id", id)
       .single();
 
