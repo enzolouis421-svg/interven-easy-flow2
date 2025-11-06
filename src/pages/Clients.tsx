@@ -139,30 +139,48 @@ export default function Clients() {
     }
   };
 
-  const handleRelance = (client: Client) => {
-    if (client.email) {
-      const dateEnvoi = new Date().toLocaleDateString("fr-FR");
-      const subject = encodeURIComponent(`Relance`);
-      const body = encodeURIComponent(
-        `Bonjour ${client.prenom || ""},\n\n` +
-        `Je me permets de revenir vers vous pour faire un suivi.\n\n` +
-        `Avez-vous pu en prendre connaissance ?\n\n` +
-        `N'hésitez pas à me dire si vous souhaitez en discuter ou ajuster certains points, je reste à votre disposition.\n\n` +
-        `Bien cordialement`
-      );
-      
-      window.location.href = `mailto:${client.email}?subject=${subject}&body=${body}`;
-      toast({
-        title: "Email de relance",
-        description: "L'application email s'ouvre pour envoyer une relance.",
-      });
-    } else {
+  const handleRelance = async (client: Client) => {
+    if (!client.email) {
       toast({
         variant: "destructive",
         title: "Erreur",
         description: "Ce client n'a pas d'adresse email.",
       });
+      return;
     }
+
+    // Récupérer le devis le plus récent du client
+    const { data: devis, error } = await supabase
+      .from("devis")
+      .select("reference")
+      .eq("client_id", client.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error || !devis) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Aucun devis trouvé pour ce client.",
+      });
+      return;
+    }
+
+    const subject = encodeURIComponent(`Relance - Devis ${devis.reference}`);
+    const body = encodeURIComponent(
+      `Bonjour ${client.prenom || ""},\n\n` +
+      `Je me permets de revenir vers vous concernant le devis ${devis.reference}.\n\n` +
+      `Avez-vous pu en prendre connaissance ?\n\n` +
+      `N'hésitez pas à me dire si vous souhaitez en discuter ou ajuster certains points, je reste à votre disposition.\n\n` +
+      `Bien cordialement`
+    );
+    
+    window.location.href = `mailto:${client.email}?subject=${subject}&body=${body}`;
+    toast({
+      title: "Email de relance",
+      description: "L'application email s'ouvre pour envoyer une relance.",
+    });
   };
 
   return (
