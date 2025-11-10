@@ -364,7 +364,7 @@ export default function DevisPreview() {
             <div className="grid grid-cols-2 gap-8 mb-8">
               {/* Client Signature */}
               <div className="space-y-4">
-                <p className="font-semibold text-center">Signature du client</p>
+                <p className="font-semibold text-center">Client</p>
                 {devis.client_signature_url ? (
                   <div className="border-2 border-gray-300 rounded p-2 h-32 flex items-center justify-center bg-gray-50">
                     <img 

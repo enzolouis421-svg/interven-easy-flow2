@@ -563,7 +563,7 @@ export default function DevisDetail() {
             {signatureMode === "electronic" ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label>Signature du client</Label>
+                  <Label>Client</Label>
                   {devis.client_signature_url ? (
                     <div className="border-2 rounded-lg p-4 mt-2">
                       <img src={devis.client_signature_url} alt="Signature client" className="max-h-32" />
