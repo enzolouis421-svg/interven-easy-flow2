@@ -390,7 +390,7 @@ export default function DevisPreview() {
 
               {/* Company Signature */}
               <div className="space-y-4">
-                <p className="font-semibold text-center">Signature de l'entreprise</p>
+                <p className="font-semibold text-center">Entreprise</p>
                 {devis.company_signature_url ? (
                   <div className="border-2 border-gray-300 rounded p-2 h-32 flex items-center justify-center bg-gray-50">
                     <img 

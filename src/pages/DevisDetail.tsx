@@ -581,7 +581,7 @@ export default function DevisDetail() {
                   )}
                 </div>
                 <div>
-                  <Label>Signature de l'entreprise</Label>
+                  <Label>Entreprise</Label>
                   {devis.company_signature_url ? (
                     <div className="border-2 rounded-lg p-4 mt-2">
                       <img src={devis.company_signature_url} alt="Signature entreprise" className="max-h-32" />
