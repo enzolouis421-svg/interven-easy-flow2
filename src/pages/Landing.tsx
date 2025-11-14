@@ -14,7 +14,7 @@ export default function Landing() {
     {
       icon: Users,
       title: "Suivi client",
-      description: "Gérez vos clients et techniciens efficacement",
+      description: "Gérez vos clients et vos relances",
     },
     {
       icon: Shield,
@@ -99,10 +99,8 @@ export default function Landing() {
             {[
               "Créez et personnalisez vos devis en quelques minutes",
               "Suivez l'état de vos interventions en temps réel",
-              "Gérez votre équipe de techniciens efficacement",
               "Générez des rapports PDF professionnels",
               "Accédez à vos données partout, à tout moment",
-              "Assistant IA pour vous aider dans vos tâches",
             ].map((benefit, index) => (
               <div
                 key={index}
