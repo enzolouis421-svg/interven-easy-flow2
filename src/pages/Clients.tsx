@@ -290,7 +290,7 @@ export default function Clients() {
 
       <div className="grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {clients.map((client) => (
-          <Card key={client.id}>
+          <Card key={client.id} className="flex flex-col">
             <CardHeader>
               <div className="flex items-start justify-between">
                 <CardTitle className="text-lg">
@@ -319,29 +319,31 @@ export default function Clients() {
                 </p>
               )}
             </CardHeader>
-            <CardContent className="space-y-3">
-              {client.email && (
-                <div className="flex items-center gap-2 text-sm">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span>{client.email}</span>
-                </div>
-              )}
-              {client.telephone && (
-                <div className="flex items-center gap-2 text-sm">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span>{client.telephone}</span>
-                </div>
-              )}
-              {client.adresse && (
-                <div className="flex items-center gap-2 text-sm">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span className="line-clamp-2">{client.adresse}</span>
-                </div>
-              )}
+            <CardContent className="flex flex-col flex-1">
+              <div className="space-y-3 flex-1">
+                {client.email && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <span>{client.email}</span>
+                  </div>
+                )}
+                {client.telephone && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <span>{client.telephone}</span>
+                  </div>
+                )}
+                {client.adresse && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span className="line-clamp-2">{client.adresse}</span>
+                  </div>
+                )}
+              </div>
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full mt-2"
+                className="w-full mt-4"
                 onClick={() => handleRelance(client)}
               >
                 <Bell className="h-4 w-4 mr-2" />
