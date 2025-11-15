@@ -204,11 +204,25 @@ export default function DevisDetail() {
       const client_nom = client ? (client.entreprise || `${client.prenom} ${client.nom}`) : "";
 
       const devisData = {
-        ...devis,
         user_id: user.id,
-        client_id: devis.client_id || null, // Éviter l'erreur UUID avec chaîne vide
+        client_id: devis.client_id,
         client_nom,
-        lignes_prestation: JSON.stringify(devis.lignes_prestation),
+        reference: devis.reference,
+        date_creation: devis.date_creation,
+        validite_jours: devis.validite_jours,
+        lignes_prestation: devis.lignes_prestation as any,
+        total_ht: devis.total_ht,
+        total_tva: devis.total_tva,
+        total_ttc: devis.total_ttc,
+        montant: devis.montant,
+        conditions_paiement: devis.conditions_paiement,
+        delai_realisation: devis.delai_realisation,
+        notes: devis.notes,
+        statut: devis.statut,
+        pret_envoi: devis.pret_envoi,
+        client_signature_url: devis.client_signature_url || null,
+        company_signature_url: devis.company_signature_url || null,
+        date_signature: devis.date_signature || null,
       };
 
       if (id && id !== "new") {
