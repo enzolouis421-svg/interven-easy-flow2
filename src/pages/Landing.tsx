@@ -49,7 +49,7 @@ export default function Landing() {
             <span className="block text-gradient mt-2">en toute simplicité</span>
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            La solution complète pour gérer vos interventions techniques, vos devis, vos clients et votre équipe. 
+            La solution complète pour gérer vos interventions techniques, vos devis et vos clients. 
             Professionnalisez votre activité dès aujourd'hui.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
