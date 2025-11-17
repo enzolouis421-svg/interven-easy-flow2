@@ -121,7 +121,7 @@ export default function Landing() {
             Prêt à démarrer ?
           </h2>
           <p className="text-xl text-muted-foreground">
-            Rejoignez les professionnels qui ont choisi IntervenGo pour gérer leur activité
+            Commencez à gérer votre activité de manière professionnelle
           </p>
           <Button 
             onClick={() => navigate("/auth")} 
