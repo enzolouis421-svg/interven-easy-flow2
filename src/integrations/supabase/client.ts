@@ -5,13 +5,39 @@ import type { Database } from './types';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-// Import the supabase client like this:
-// import { supabase } from "@/integrations/supabase/client";
+// Créer un client par défaut même si les variables sont manquantes
+// pour éviter de bloquer l'application
+let supabaseInstance: ReturnType<typeof createClient<Database>> | null = null;
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  auth: {
-    storage: localStorage,
-    persistSession: true,
-    autoRefreshToken: true,
+if (SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY) {
+  try {
+    supabaseInstance = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      auth: {
+        storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+        persistSession: true,
+        autoRefreshToken: true,
+      }
+    });
+  } catch (error) {
+    console.error('Erreur lors de la création du client Supabase:', error);
   }
-});
+} else {
+  console.warn(
+    '⚠️ Variables d\'environnement Supabase manquantes. ' +
+    'Vérifiez que VITE_SUPABASE_URL et VITE_SUPABASE_PUBLISHABLE_KEY sont définies dans votre fichier .env'
+  );
+  // Créer un client factice pour éviter les erreurs
+  supabaseInstance = createClient<Database>(
+    'https://placeholder.supabase.co',
+    'placeholder-key',
+    {
+      auth: {
+        storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+        persistSession: false,
+        autoRefreshToken: false,
+      }
+    }
+  );
+}
+
+export const supabase = supabaseInstance!;

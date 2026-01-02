@@ -67,11 +67,54 @@ export default function FacturePreview() {
         description: "Le PDF de la facture est en cours de génération...",
       });
 
-      const { data, error } = await supabase.functions.invoke("generate-pdf", {
-        body: { type: "facture", id },
-      });
+      // Récupérer le token d'authentification
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Vous devez être connecté pour télécharger le PDF",
+        });
+        return;
+      }
 
-      if (error) throw error;
+      // Appeler l'Edge Function avec l'authentification
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-pdf`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "",
+          },
+          body: JSON.stringify({ type: "facture", id }),
+        }
+      );
+
+      if (!response.ok) {
+        let errorMessage = `Erreur lors du téléchargement (code: ${response.status})`;
+        
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch (e) {
+          const text = await response.text().catch(() => "");
+          if (text) errorMessage = text.substring(0, 200);
+        }
+        
+        if (response.status === 404) {
+          errorMessage = "La fonction de génération PDF n'est pas disponible. Veuillez contacter le support technique.";
+        } else if (response.status === 401 || response.status === 403) {
+          errorMessage = "Erreur d'authentification. Veuillez vous reconnecter.";
+        } else if (response.status === 500) {
+          errorMessage = "Erreur serveur. Veuillez réessayer plus tard.";
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
 
       if (data.html) {
         const { generatePDFFromHTML } = await import("@/lib/pdfGenerator");
@@ -85,9 +128,10 @@ export default function FacturePreview() {
         });
       }
     } catch (error: any) {
+      console.error("Erreur téléchargement PDF:", error);
       toast({
         title: "Erreur",
-        description: error.message || "Impossible de générer le PDF",
+        description: error.message || "Impossible de générer le PDF. Vérifiez que la fonction Edge est déployée.",
         variant: "destructive",
       });
     }

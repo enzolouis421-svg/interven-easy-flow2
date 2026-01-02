@@ -59,36 +59,87 @@ export default function InterventionPreview() {
   };
 
   const handleDownloadPDF = async () => {
-    const printWindow = window.open("", "_blank");
-    
     try {
-      const { data, error } = await supabase.functions.invoke("generate-pdf", {
-        body: { type: "intervention", id },
-      });
-
-      if (error) {
-        if (printWindow) printWindow.close();
-        throw error;
-      }
-
-      if (data.html && printWindow) {
-        printWindow.document.write(data.html);
-        printWindow.document.close();
-        printWindow.onload = () => {
-          printWindow.print();
-        };
-      }
-
       toast({
-        title: "PDF généré",
-        description: "Fenêtre d'impression ouverte",
+        title: "Génération du PDF",
+        description: "Le PDF est en cours de génération...",
       });
+
+      // Récupérer le token d'authentification
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Vous devez être connecté pour télécharger le PDF",
+        });
+        return;
+      }
+
+      // Vérifier que les variables d'environnement sont définies
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      
+      if (!supabaseUrl || !supabaseKey) {
+        throw new Error("Configuration Supabase manquante. Contactez l'administrateur.");
+      }
+
+      // Appeler l'Edge Function avec l'authentification
+      const functionUrl = `${supabaseUrl}/functions/v1/generate-pdf`;
+      
+      const response = await fetch(functionUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: supabaseKey,
+        },
+        body: JSON.stringify({ type: "intervention", id }),
+      });
+
+      if (!response.ok) {
+        let errorMessage = `Erreur lors du téléchargement (code: ${response.status})`;
+        
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch (e) {
+          const text = await response.text().catch(() => "");
+          if (text) errorMessage = text.substring(0, 200);
+        }
+        
+        if (response.status === 404) {
+          errorMessage = "La fonction de génération PDF n'est pas disponible. Veuillez contacter le support technique.";
+        } else if (response.status === 401 || response.status === 403) {
+          errorMessage = "Erreur d'authentification. Veuillez vous reconnecter.";
+        } else if (response.status === 500) {
+          errorMessage = "Erreur serveur. Veuillez réessayer plus tard.";
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+
+      if (data.html) {
+        // Utiliser la fonction de génération PDF pour télécharger le fichier
+        const { generatePDFFromHTML } = await import("@/lib/pdfGenerator");
+        const filename = `intervention-${intervention?.titre?.replace(/[^a-zA-Z0-9]/g, '-') || id}-${new Date().toISOString().split('T')[0]}.pdf`;
+        
+        await generatePDFFromHTML(data.html, filename);
+        
+        toast({
+          title: "PDF téléchargé",
+          description: "Le PDF a été téléchargé avec succès",
+        });
+      } else {
+        throw new Error("Aucun contenu HTML reçu du serveur");
+      }
     } catch (error: any) {
-      if (printWindow) printWindow.close();
       toast({
         variant: "destructive",
-        title: "Erreur",
-        description: error.message,
+        title: "Erreur de téléchargement",
+        description: error.message || "Impossible de télécharger le PDF. Veuillez réessayer ou contacter le support.",
       });
     }
   };

@@ -14,6 +14,7 @@
 
 # production
 /build
+/dist
 
 # misc
 .DS_Store
@@ -45,3 +46,17 @@ next-env.d.ts
 *.swp
 *.swo
 *~
+
+# Vite
+.vite
+
+# Supabase
+.supabase
+
+# Node version (si vous avez téléchargé une version locale)
+node-v20.10.0-darwin-arm64/
+node.tar.gz
+
+# Build files
+*.log
+.cache

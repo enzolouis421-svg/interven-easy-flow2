@@ -74,13 +74,19 @@ export default function FactureDetail() {
     if (!error && data) {
       setReference(data.reference);
       setClientId(data.client_id);
-      setDateEmission(data.date_emission.split('T')[0]);
+      setDateEmission(data.date_emission ? data.date_emission.split('T')[0] : new Date().toISOString().split('T')[0]);
       setDateEcheance(data.date_echeance ? data.date_echeance.split('T')[0] : "");
       setConditionsPaiement(data.conditions_paiement || "");
       setNotes(data.notes || "");
       setStatut(data.statut);
       setLignes(typeof data.lignes_prestation === 'string' 
-        ? JSON.parse(data.lignes_prestation)
+        ? (() => {
+            try {
+              return JSON.parse(data.lignes_prestation);
+            } catch {
+              return [];
+            }
+          })()
         : ((data.lignes_prestation as unknown) as LignePrestation[] || []));
     }
   };
@@ -97,7 +103,13 @@ export default function FactureDetail() {
       setConditionsPaiement(data.conditions_paiement || "Paiement à réception de facture");
       setNotes(data.notes || "");
       setLignes(typeof data.lignes_prestation === 'string'
-        ? JSON.parse(data.lignes_prestation)
+        ? (() => {
+            try {
+              return JSON.parse(data.lignes_prestation);
+            } catch {
+              return [];
+            }
+          })()
         : ((data.lignes_prestation as unknown) as LignePrestation[] || []));
       
       // Generate reference

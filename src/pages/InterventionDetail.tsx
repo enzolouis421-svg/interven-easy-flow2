@@ -169,20 +169,36 @@ export default function InterventionDetail() {
       const timestamp = Date.now();
       const fileName = `${user.id}/intervention-${timestamp}.png`;
       
+      // Vérifier que le bucket existe avant d'uploader
+      const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
+      if (bucketError) {
+        console.error("Erreur lors de la vérification des buckets:", bucketError);
+      }
+      
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from("signatures")
         .upload(fileName, blob, {
           contentType: "image/png",
-          upsert: false,
+          upsert: true, // Permet d'écraser si le fichier existe déjà
         });
 
       if (uploadError) {
         console.error("Erreur upload signature:", uploadError);
-        toast({
-          variant: "destructive",
-          title: "Erreur",
-          description: `Impossible de sauvegarder la signature: ${uploadError.message}`,
-        });
+        
+        // Si le bucket n'existe pas, donner un message plus clair
+        if (uploadError.message?.includes("Bucket not found") || uploadError.message?.includes("not found")) {
+          toast({
+            variant: "destructive",
+            title: "Erreur",
+            description: "Le bucket 'signatures' n'existe pas dans Supabase Storage. Veuillez le créer dans votre projet Supabase.",
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Erreur",
+            description: `Impossible de sauvegarder la signature: ${uploadError.message}`,
+          });
+        }
         return null;
       }
 
@@ -204,13 +220,27 @@ export default function InterventionDetail() {
     setLoading(true);
 
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
     // Save signature if present
     let signatureUrl = formData.signature_url;
     if (signatureRef.current && !signatureRef.current.isEmpty()) {
       const url = await saveSignature();
-      if (url) signatureUrl = url;
+      if (url) {
+        signatureUrl = url;
+      } else {
+        // Si la signature n'a pas pu être sauvegardée, demander confirmation
+        const shouldContinue = window.confirm(
+          "La signature n'a pas pu être sauvegardée. Voulez-vous continuer sans la signature ?"
+        );
+        if (!shouldContinue) {
+          setLoading(false);
+          return;
+        }
+      }
     }
 
     const dataToSave = {
@@ -220,13 +250,24 @@ export default function InterventionDetail() {
     };
 
     let error;
+    let savedId = id;
+    
     if (id && id !== "new") {
       ({ error } = await supabase
         .from("interventions")
         .update(dataToSave)
         .eq("id", id));
     } else {
-      ({ error } = await supabase.from("interventions").insert(dataToSave));
+      const { data: insertData, error: insertError } = await supabase
+        .from("interventions")
+        .insert(dataToSave)
+        .select()
+        .single();
+      
+      error = insertError;
+      if (insertData) {
+        savedId = insertData.id;
+      }
     }
 
     if (error) {
@@ -235,12 +276,14 @@ export default function InterventionDetail() {
         title: "Erreur",
         description: error.message,
       });
+      setLoading(false);
     } else {
       toast({
         title: "Succès",
         description: "Intervention enregistrée",
       });
-      navigate("/interventions");
+      // Rediriger vers la page des interventions (route corrigée)
+      navigate("/interventions-devis");
     }
     setLoading(false);
   };
@@ -267,11 +310,37 @@ export default function InterventionDetail() {
     }
 
     try {
-      const { data, error } = await supabase.functions.invoke("generate-pdf", {
-        body: { type: "intervention", id },
-      });
+      // Récupérer le token d'authentification
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Vous devez être connecté pour télécharger le PDF",
+        });
+        return;
+      }
 
-      if (error) throw error;
+      // Appeler l'Edge Function avec l'authentification
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-pdf`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "",
+          },
+          body: JSON.stringify({ type: "intervention", id }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: "Erreur inconnue" }));
+        throw new Error(errorData.message || `Erreur HTTP: ${response.status}`);
+      }
+
+      const data = await response.json();
 
       if (data.html) {
         const { generatePDFFromHTML } = await import("@/lib/pdfGenerator");
@@ -285,10 +354,11 @@ export default function InterventionDetail() {
         });
       }
     } catch (error: any) {
+      console.error("Erreur téléchargement PDF:", error);
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: error.message,
+        description: error.message || "Impossible de télécharger le PDF. Vérifiez que la fonction Edge est déployée.",
       });
     }
   };

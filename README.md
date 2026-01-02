@@ -15,8 +15,8 @@ SaaS d'analyse carbone automatisée pour toute entreprise, tous secteurs confond
 
 ## 🛠️ Stack Technique
 
-- **Frontend** : Next.js 14 (App Router), TypeScript, TailwindCSS, Shadcn/UI
-- **Backend** : Next.js API Routes, Prisma ORM, Supabase (PostgreSQL + Storage + Auth)
+- **Frontend** : Vite + React, TypeScript, TailwindCSS, Shadcn/UI, React Router
+- **Backend** : Supabase (PostgreSQL + Storage + Auth + Edge Functions), Prisma ORM
 - **IA** : OpenAI (GPT-4) pour extraction, classification, recommandations
 - **Graphiques** : Recharts
 - **PDF** : PDFKit pour génération de rapports
@@ -49,23 +49,19 @@ bun install
 Créez un fichier `.env` à la racine :
 
 ```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+# Supabase (variables Vite)
+VITE_SUPABASE_URL=https://votre-projet.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=votre_cle_anon_supabase
+SUPABASE_SERVICE_ROLE_KEY=votre_cle_service_role_supabase
 
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/airnex?schema=public
+# Database (utilisez la connection string de Supabase)
+DATABASE_URL=postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres
 
 # OpenAI
-OPENAI_API_KEY=your_openai_api_key
+OPENAI_API_KEY=sk-votre_cle_openai
 
-# Next.js
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your_nextauth_secret
-
-# App
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+# App (optionnel)
+VITE_APP_URL=http://localhost:5000
 ```
 
 4. **Configurer Supabase**
@@ -92,7 +88,7 @@ npm run db:migrate
 npm run dev
 ```
 
-L'application sera accessible sur [http://localhost:3000](http://localhost:3000)
+L'application sera accessible sur [http://localhost:5000](http://localhost:5000)
 
 ## 📁 Structure du projet
 

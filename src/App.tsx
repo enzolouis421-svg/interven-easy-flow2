@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { DashboardLayout } from "./components/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
 import InterventionDetail from "./pages/InterventionDetail";
+import InterventionPreview from "./pages/InterventionPreview";
 import Clients from "./pages/Clients";
 import Techniciens from "./pages/Techniciens";
 import TechnicienProfile from "./pages/TechnicienProfile";
@@ -53,6 +54,14 @@ const App = () => (
             element={
               <DashboardLayout>
                 <InterventionDetail />
+              </DashboardLayout>
+            }
+          />
+          <Route
+            path="/interventions/preview/:id"
+            element={
+              <DashboardLayout>
+                <InterventionPreview />
               </DashboardLayout>
             }
           />

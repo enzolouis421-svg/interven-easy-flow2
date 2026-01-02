@@ -34,7 +34,7 @@ interface Devis {
 const interventionStatusConfig = {
   a_faire: { label: "À faire", variant: "secondary" as const },
   en_cours: { label: "En cours", variant: "default" as const },
-  terminee: { label: "Terminée", variant: "default" as const },
+  termine: { label: "Terminée", variant: "default" as const },
 };
 
 const devisStatusConfig = {
@@ -101,64 +101,137 @@ export default function InterventionsDevis() {
 
   const handleDownloadDevisPDF = async (id: string) => {
     try {
-      const { data, error } = await supabase.functions.invoke("generate-pdf", {
-        body: { type: "devis", id },
-      });
-
-      if (error) throw error;
-
-      if (data.html) {
-        const printWindow = window.open("", "_blank");
-        if (printWindow) {
-          printWindow.document.write(data.html);
-          printWindow.document.close();
-          printWindow.onload = () => {
-            printWindow.print();
-          };
-        }
+      // Récupérer le token d'authentification
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Vous devez être connecté pour télécharger le PDF",
+        });
+        return;
       }
 
-      toast({
-        title: "PDF généré",
-        description: "Fenêtre d'impression ouverte",
-      });
+      // Appeler l'Edge Function avec l'authentification
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-pdf`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "",
+          },
+          body: JSON.stringify({ type: "devis", id }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: "Erreur inconnue" }));
+        throw new Error(errorData.message || `Erreur HTTP: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.html) {
+        // Utiliser la fonction de génération PDF pour télécharger le fichier
+        const { generatePDFFromHTML } = await import("@/lib/pdfGenerator");
+        const currentDevis = devis.find(d => d.id === id);
+        const filename = `devis-${currentDevis?.reference || id}-${new Date().toISOString().split('T')[0]}.pdf`;
+        
+        await generatePDFFromHTML(data.html, filename);
+        
+        toast({
+          title: "PDF téléchargé",
+          description: "Le PDF a été téléchargé avec succès",
+        });
+      }
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Erreur",
-        description: error.message,
+        title: "Erreur de téléchargement",
+        description: error.message || "Impossible de télécharger le PDF. Veuillez réessayer ou contacter le support.",
       });
     }
   };
 
   const handleDownloadInterventionPDF = async (id: string) => {
     try {
-      const { data, error } = await supabase.functions.invoke("generate-pdf", {
-        body: { type: "intervention", id },
-      });
-
-      if (error) throw error;
-
-      if (data.html) {
-        const printWindow = window.open("", "_blank");
-        if (printWindow) {
-          printWindow.document.write(data.html);
-          printWindow.document.close();
-          printWindow.onload = () => {
-            printWindow.print();
-          };
-        }
+      // Récupérer le token d'authentification
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Vous devez être connecté pour télécharger le PDF",
+        });
+        return;
       }
 
-      toast({
-        title: "PDF généré",
-        description: "Fenêtre d'impression ouverte",
+      // Vérifier que les variables d'environnement sont définies
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      
+      if (!supabaseUrl || !supabaseKey) {
+        throw new Error("Variables d'environnement Supabase manquantes. Vérifiez votre fichier .env");
+      }
+
+      // Appeler l'Edge Function avec l'authentification
+      const functionUrl = `${supabaseUrl}/functions/v1/generate-pdf`;
+      console.log("Appel Edge Function:", functionUrl);
+      
+      const response = await fetch(functionUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: supabaseKey,
+        },
+        body: JSON.stringify({ type: "intervention", id }),
       });
+
+      if (!response.ok) {
+        let errorMessage = `Erreur lors du téléchargement (code: ${response.status})`;
+        
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch (e) {
+          const text = await response.text().catch(() => "");
+          if (text) errorMessage = text.substring(0, 200);
+        }
+        
+        if (response.status === 404) {
+          errorMessage = "La fonction de génération PDF n'est pas disponible. Veuillez contacter le support technique.";
+        } else if (response.status === 401 || response.status === 403) {
+          errorMessage = "Erreur d'authentification. Veuillez vous reconnecter.";
+        } else if (response.status === 500) {
+          errorMessage = "Erreur serveur. Veuillez réessayer plus tard.";
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+
+      if (data.html) {
+        // Utiliser la fonction de génération PDF pour télécharger le fichier
+        const { generatePDFFromHTML } = await import("@/lib/pdfGenerator");
+        const intervention = interventions.find(i => i.id === id);
+        const filename = `intervention-${intervention?.titre?.replace(/[^a-zA-Z0-9]/g, '-') || id}-${new Date().toISOString().split('T')[0]}.pdf`;
+        
+        await generatePDFFromHTML(data.html, filename);
+        
+        toast({
+          title: "PDF téléchargé",
+          description: "Le PDF a été téléchargé avec succès",
+        });
+      }
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Erreur",
-        description: error.message,
+        title: "Erreur de téléchargement",
+        description: error.message || "Impossible de télécharger le PDF. Veuillez réessayer ou contacter le support.",
       });
     }
   };
@@ -203,7 +276,22 @@ export default function InterventionsDevis() {
           </TabsList>
         </Tabs>
 
-        {showInterventions && (
+        {/* Filtres pour "Tous" - uniquement le bouton Tout */}
+        {typeFilter === "tous" && (
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant={statusFilter === "tous" ? "default" : "outline"}
+              onClick={() => setStatusFilter("tous")}
+              size="sm"
+              className="text-xs md:text-sm"
+            >
+              Tout
+            </Button>
+          </div>
+        )}
+
+        {/* Filtres pour "Interventions" - Tout, À faire, En cours, Terminée */}
+        {typeFilter === "interventions" && (
           <div className="flex flex-wrap gap-2">
             <Button
               variant={statusFilter === "tous" ? "default" : "outline"}
@@ -230,8 +318,8 @@ export default function InterventionsDevis() {
               En cours
             </Button>
             <Button
-              variant={statusFilter === "terminee" ? "default" : "outline"}
-              onClick={() => setStatusFilter("terminee")}
+              variant={statusFilter === "termine" ? "default" : "outline"}
+              onClick={() => setStatusFilter("termine")}
               size="sm"
               className="text-xs md:text-sm"
             >
@@ -240,7 +328,8 @@ export default function InterventionsDevis() {
           </div>
         )}
 
-        {showDevis && typeFilter === "devis" && (
+        {/* Filtres pour "Devis" - Tout, En attente, Envoyé, Accepté, Refusé */}
+        {typeFilter === "devis" && (
           <div className="flex flex-wrap gap-2">
             <Button
               variant={statusFilter === "tous" ? "default" : "outline"}
@@ -301,12 +390,19 @@ export default function InterventionsDevis() {
                     </Badge>
                   </div>
                   <div className="flex gap-1 flex-shrink-0">
-                    <Button variant="ghost" size="icon" onClick={() => navigate(`/interventions/${intervention.id}`)} className="hover:bg-primary/10 hover:text-primary h-8 w-8" title="Voir">
+                    {/* Bouton Visualiser (œil) - pour toutes les interventions */}
+                    <Button variant="ghost" size="icon" onClick={() => navigate(`/interventions/preview/${intervention.id}`)} className="hover:bg-primary/10 hover:text-primary h-8 w-8" title="Visualiser">
                       <Eye className="h-3.5 w-3.5" />
                     </Button>
+                    {/* Bouton Modifier */}
+                    <Button variant="ghost" size="icon" onClick={() => navigate(`/interventions/${intervention.id}`)} className="hover:bg-primary/10 hover:text-primary h-8 w-8" title="Modifier">
+                      <Edit className="h-3.5 w-3.5" />
+                    </Button>
+                    {/* Bouton Télécharger PDF */}
                     <Button variant="ghost" size="icon" onClick={() => handleDownloadInterventionPDF(intervention.id)} className="hover:bg-accent/10 hover:text-accent h-8 w-8" title="Télécharger PDF">
                       <Download className="h-3.5 w-3.5" />
                     </Button>
+                    {/* Bouton Supprimer */}
                     <Button variant="ghost" size="icon" onClick={() => handleDeleteIntervention(intervention.id)} className="hover:bg-destructive/10 hover:text-destructive h-8 w-8" title="Supprimer">
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>

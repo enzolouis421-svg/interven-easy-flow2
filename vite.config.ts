@@ -7,10 +7,8 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
-    port: 5000,
-    strictPort: false, // Si le port 5000 est occupé, utilise le prochain port disponible
-    // Note: Si vous voulez forcer le port 5000, changez strictPort à true
-    // et désactivez AirPlay Receiver dans Préférences Système > Partage
+    port: 5173, // Port par défaut de Vite (5000 est utilisé par AirPlay sur Mac)
+    strictPort: false, // Si le port est occupé, utilise le prochain port disponible
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {

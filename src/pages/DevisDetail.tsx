@@ -71,10 +71,12 @@ export default function DevisDetail() {
       const reference = `DEV-${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, "0")}${String(today.getDate()).padStart(2, "0")}-${Math.floor(Math.random() * 1000).toString().padStart(3, "0")}`;
       setDevis((prev) => ({ ...prev, reference }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {
     calculateTotals();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [devis.lignes_prestation]);
 
   const loadClients = async () => {
@@ -109,17 +111,63 @@ export default function DevisDetail() {
   const loadDevis = async () => {
     const { data, error } = await supabase
       .from("devis")
-      .select("*, clients(nom)")
+      .select("*")
       .eq("id", id)
       .single();
 
     if (!error && data) {
+      // Extraire uniquement les champs de la table devis, sans les relations
+      const {
+        id: devisId,
+        user_id,
+        client_id,
+        reference,
+        date_creation,
+        validite_jours,
+        lignes_prestation,
+        total_ht,
+        total_tva,
+        total_ttc,
+        montant,
+        conditions_paiement,
+        delai_realisation,
+        notes,
+        statut,
+        pret_envoi,
+        client_signature_url,
+        company_signature_url,
+        date_signature,
+        client_nom,
+        created_at,
+        updated_at,
+      } = data;
+
       setDevis({
-        ...data,
-        date_creation: data.date_creation.split("T")[0],
-        lignes_prestation: typeof data.lignes_prestation === 'string' 
-          ? JSON.parse(data.lignes_prestation) 
-          : (data.lignes_prestation || []),
+        client_id: client_id || "",
+        reference: reference || "",
+        date_creation: date_creation ? date_creation.split("T")[0] : new Date().toISOString().split("T")[0],
+        validite_jours: validite_jours || 30,
+        lignes_prestation: typeof lignes_prestation === 'string' 
+          ? (() => {
+              try {
+                return JSON.parse(lignes_prestation);
+              } catch {
+                return [];
+              }
+            })()
+          : (lignes_prestation || []),
+        total_ht: total_ht || 0,
+        total_tva: total_tva || 0,
+        total_ttc: total_ttc || 0,
+        montant: montant || total_ttc || 0,
+        conditions_paiement: conditions_paiement || "Paiement à réception de facture",
+        delai_realisation: delai_realisation || "",
+        notes: notes || "",
+        statut: statut || "En attente",
+        pret_envoi: pret_envoi || false,
+        client_signature_url: client_signature_url || "",
+        company_signature_url: company_signature_url || "",
+        date_signature: date_signature || null,
       });
     }
   };
@@ -203,24 +251,40 @@ export default function DevisDetail() {
       const client = clients.find((c) => c.id === devis.client_id);
       const client_nom = client ? (client.entreprise || `${client.prenom} ${client.nom}`) : "";
 
-      const devisData = {
-        ...devis,
+      // Préparer les données à sauvegarder (uniquement les champs de la table devis)
+      const devisData: any = {
         user_id: user.id,
-        client_nom,
+        client_id: devis.client_id,
+        reference: devis.reference,
+        date_creation: devis.date_creation,
+        validite_jours: devis.validite_jours,
         lignes_prestation: JSON.stringify(devis.lignes_prestation),
+        total_ht: devis.total_ht,
+        total_tva: devis.total_tva,
+        total_ttc: devis.total_ttc,
+        montant: devis.montant,
+        conditions_paiement: devis.conditions_paiement,
+        delai_realisation: devis.delai_realisation,
+        notes: devis.notes,
+        statut: devis.statut,
+        pret_envoi: devis.pret_envoi,
+        client_signature_url: devis.client_signature_url,
+        company_signature_url: devis.company_signature_url,
+        date_signature: devis.date_signature,
+        client_nom,
       };
 
       if (id && id !== "new") {
         const { error } = await supabase.from("devis").update(devisData).eq("id", id);
         if (error) throw error;
         toast({ title: "Devis modifié", description: "Le devis a été modifié avec succès" });
+        navigate("/interventions-devis");
       } else {
-        const { error } = await supabase.from("devis").insert([devisData]);
+        const { data: newDevis, error } = await supabase.from("devis").insert([devisData]).select().single();
         if (error) throw error;
         toast({ title: "Devis créé", description: "Le devis a été créé avec succès" });
+        navigate("/interventions-devis");
       }
-
-      navigate("/interventions-devis");
     } catch (error: any) {
       toast({ variant: "destructive", title: "Erreur", description: error.message });
     }
@@ -233,11 +297,54 @@ export default function DevisDetail() {
     }
 
     try {
-      const { data, error } = await supabase.functions.invoke("generate-pdf", {
-        body: { type: "devis", id },
-      });
+      // Récupérer le token d'authentification
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Vous devez être connecté pour télécharger le PDF",
+        });
+        return;
+      }
 
-      if (error) throw error;
+      // Appeler l'Edge Function avec l'authentification
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-pdf`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "",
+          },
+          body: JSON.stringify({ type: "devis", id }),
+        }
+      );
+
+      if (!response.ok) {
+        let errorMessage = `Erreur lors du téléchargement (code: ${response.status})`;
+        
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch (e) {
+          const text = await response.text().catch(() => "");
+          if (text) errorMessage = text.substring(0, 200);
+        }
+        
+        if (response.status === 404) {
+          errorMessage = "La fonction de génération PDF n'est pas disponible. Veuillez contacter le support technique.";
+        } else if (response.status === 401 || response.status === 403) {
+          errorMessage = "Erreur d'authentification. Veuillez vous reconnecter.";
+        } else if (response.status === 500) {
+          errorMessage = "Erreur serveur. Veuillez réessayer plus tard.";
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
 
       if (data?.html) {
         const { generatePDFFromHTML } = await import("@/lib/pdfGenerator");
@@ -248,7 +355,8 @@ export default function DevisDetail() {
         toast({ title: "PDF généré", description: "Le PDF a été téléchargé avec succès" });
       }
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Erreur", description: error.message });
+      console.error("Erreur téléchargement PDF:", error);
+      toast({ variant: "destructive", title: "Erreur", description: error.message || "Impossible de télécharger le PDF. Vérifiez que la fonction Edge est déployée." });
     }
   };
 
@@ -287,13 +395,20 @@ export default function DevisDetail() {
         .from("signatures")
         .upload(fileName, blob, {
           contentType: "image/png",
-          upsert: false,
+          upsert: true, // Permet d'écraser si le fichier existe déjà
         });
 
       if (uploadError) {
         // Si le bucket n'existe pas ou erreur d'upload
         console.error("Erreur upload signature:", uploadError);
-        throw new Error(`Erreur lors de l'enregistrement: ${uploadError.message}`);
+        
+        // Message d'erreur plus clair selon le type d'erreur
+        let errorMessage = uploadError.message;
+        if (uploadError.message?.includes("Bucket not found") || uploadError.message?.includes("not found")) {
+          errorMessage = "Le bucket 'signatures' n'existe pas dans Supabase Storage. Veuillez le créer dans votre projet Supabase.";
+        }
+        
+        throw new Error(`Erreur lors de l'enregistrement: ${errorMessage}`);
       }
 
       // Obtenir l'URL publique

@@ -22,21 +22,19 @@ bun install
 Créez un fichier `.env` à la racine :
 
 ```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=https://votre-projet.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=votre_cle_anon
-SUPABASE_SERVICE_ROLE_KEY=votre_cle_service_role
+# Supabase (variables Vite - REQUIS)
+VITE_SUPABASE_URL=https://votre-projet.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=votre_cle_anon_supabase
+SUPABASE_SERVICE_ROLE_KEY=votre_cle_service_role_supabase
 
 # Database (utilisez la connection string de Supabase)
 DATABASE_URL=postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres
 
-# OpenAI
+# OpenAI (pour les fonctionnalités IA)
 OPENAI_API_KEY=sk-votre_cle_openai
 
-# Next.js
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=generer_une_cle_secrete_aleatoire
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+# App (optionnel)
+VITE_APP_URL=http://localhost:5000
 ```
 
 ### 4. Initialiser Prisma
@@ -55,7 +53,7 @@ npm run db:push
 npm run dev
 ```
 
-L'application sera accessible sur [http://localhost:3000](http://localhost:3000)
+L'application sera accessible sur [http://localhost:5000](http://localhost:5000)
 
 ## 📝 Notes importantes
 
@@ -73,6 +71,14 @@ Vérifiez votre `DATABASE_URL` dans le fichier `.env`
 
 ### Erreur Supabase
 Vérifiez que vos clés API Supabase sont correctes et que le bucket `files` existe
+
+
+
+
+
+
+
+
 
 
 
