@@ -30,5 +30,5 @@ fi
 sleep 1
 
 # Démarrer l'application
-export PATH="$PWD/node-v20.10.0-darwin-arm64/bin:$PATH"
+# Note: Utilise Node.js installé globalement (pas de version locale nécessaire)
 npm run dev
