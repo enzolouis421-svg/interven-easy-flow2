@@ -99,10 +99,9 @@ export default function Landing() {
             {[
               "Créez et personnalisez vos devis en quelques minutes",
               "Suivez l'état de vos interventions en temps réel",
-              "Gérez votre équipe de techniciens efficacement",
               "Générez des rapports PDF professionnels",
               "Accédez à vos données partout, à tout moment",
-              "Assistant IA pour vous aider dans vos tâches",
+              "Signez tout sur place avec les signatures électroniques",
             ].map((benefit, index) => (
               <div
                 key={index}
