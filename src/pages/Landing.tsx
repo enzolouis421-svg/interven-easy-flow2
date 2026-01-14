@@ -91,11 +91,11 @@ export default function Landing() {
 
       {/* Benefits Section */}
       <section className="container mx-auto px-4 py-20 border-t border-border/40">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
             Pourquoi choisir IntervenGo ?
           </h2>
-          <div className="space-y-4">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {[
               "Créez et personnalisez vos devis en quelques minutes",
               "Suivez l'état de vos interventions en temps réel",
@@ -106,10 +106,13 @@ export default function Landing() {
             ].map((benefit, index) => (
               <div
                 key={index}
-                className="flex items-start gap-3 p-4 rounded-lg bg-card/30 border border-border/30 hover:border-primary/30 transition-colors"
+                className="flex items-start gap-3 p-4 md:p-5 rounded-xl bg-card/50 border border-border/40 hover:border-primary/50 hover:shadow-glow transition-all duration-300 group"
+                style={{ animationDelay: `${index * 100}ms` }}
               >
-                <CheckCircle className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
-                <span className="text-lg">{benefit}</span>
+                <div className="flex-shrink-0 mt-0.5">
+                  <CheckCircle className="h-5 w-5 md:h-6 md:w-6 text-primary group-hover:scale-110 transition-transform" />
+                </div>
+                <span className="text-base md:text-lg leading-relaxed">{benefit}</span>
               </div>
             ))}
           </div>

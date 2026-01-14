@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Plus, FileText, Trash2, Eye, Download, Edit } from "lucide-react";
@@ -14,11 +14,11 @@ interface Intervention {
   id: string;
   titre: string;
   description: string | null;
-  statut: string;
+  statut: string | null;
   date_intervention: string | null;
   adresse: string | null;
   rapport_pdf_url: string | null;
-  clients: { nom: string; prenom: string; entreprise: string | null } | null;
+  clients: { nom: string; prenom: string | null; entreprise: string | null } | null;
 }
 
 interface Devis {
@@ -28,7 +28,7 @@ interface Devis {
   statut: string;
   total_ttc: number;
   pret_envoi: boolean;
-  clients: { nom: string; prenom: string; entreprise: string | null } | null;
+  clients: { nom: string; prenom: string | null; entreprise: string | null } | null;
 }
 
 const interventionStatusConfig = {
@@ -50,11 +50,8 @@ export default function InterventionsDevis() {
   const [typeFilter, setTypeFilter] = useState<"tous" | "interventions" | "devis">("tous");
   const [statusFilter, setStatusFilter] = useState<string>("tous");
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
-
-  useEffect(() => {
-    loadData();
-  }, []);
 
   const loadData = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -78,6 +75,34 @@ export default function InterventionsDevis() {
 
     if (devisData) setDevis(devisData);
   };
+
+  useEffect(() => {
+    loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Recharger les données quand on revient sur cette route
+  useEffect(() => {
+    if (location.pathname === "/interventions-devis") {
+      loadData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
+  // Recharger les données quand l'onglet redevient visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && location.pathname === "/interventions-devis") {
+        loadData();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   const handleDeleteIntervention = async (id: string) => {
     const { error } = await supabase.from("interventions").delete().eq("id", id);
@@ -238,7 +263,7 @@ export default function InterventionsDevis() {
 
   const filteredInterventions = interventions.filter((item) => {
     if (statusFilter === "tous") return true;
-    return item.statut === statusFilter;
+    return item.statut === statusFilter || (item.statut === null && statusFilter === "a_faire");
   });
 
   const filteredDevis = devis.filter((item) => {
@@ -385,8 +410,8 @@ export default function InterventionsDevis() {
                     <CardTitle className="text-base md:text-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent truncate">
                       {intervention.titre}
                     </CardTitle>
-                    <Badge className="mt-2" variant={interventionStatusConfig[intervention.statut as keyof typeof interventionStatusConfig]?.variant}>
-                      {interventionStatusConfig[intervention.statut as keyof typeof interventionStatusConfig]?.label}
+                    <Badge className="mt-2" variant={interventionStatusConfig[intervention.statut as keyof typeof interventionStatusConfig]?.variant || "secondary"}>
+                      {interventionStatusConfig[intervention.statut as keyof typeof interventionStatusConfig]?.label || "Non défini"}
                     </Badge>
                   </div>
                   <div className="flex gap-1 flex-shrink-0">
@@ -415,7 +440,7 @@ export default function InterventionsDevis() {
                 )}
                 {intervention.clients && (
                   <div className="text-xs md:text-sm font-medium truncate">
-                    {intervention.clients.entreprise || `${intervention.clients.prenom} ${intervention.clients.nom}`}
+                    {intervention.clients.entreprise || `${intervention.clients.prenom || ""} ${intervention.clients.nom}`.trim()}
                   </div>
                 )}
                 {intervention.adresse && (
@@ -466,7 +491,7 @@ export default function InterventionsDevis() {
                 {d.clients && (
                   <div className="flex items-center gap-2 text-xs md:text-sm font-medium">
                     <FileText className="h-3.5 w-3.5 md:h-4 md:w-4 text-secondary flex-shrink-0" />
-                    <span className="truncate">{d.clients.entreprise || `${d.clients.prenom} ${d.clients.nom}`}</span>
+                    <span className="truncate">{d.clients.entreprise || `${d.clients.prenom || ""} ${d.clients.nom}`.trim()}</span>
                   </div>
                 )}
                 <div className="text-xs md:text-sm text-muted-foreground">
