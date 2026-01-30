@@ -61,7 +61,7 @@ export default function Auth() {
           description: "Bienvenue sur IntervenGo !",
         });
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -71,11 +71,21 @@ export default function Auth() {
 
         if (error) throw error;
 
-        toast({
-          title: "Compte créé",
-          description: "Vous pouvez maintenant vous connecter.",
-        });
-        setIsLogin(true);
+        // Si l'utilisateur est automatiquement connecté (email confirm désactivé dans Supabase)
+        if (data.session) {
+          toast({
+            title: "Compte créé",
+            description: "Bienvenue sur IntervenGo !",
+          });
+          navigate("/dashboard");
+        } else {
+          // Si la vérification email est activée dans Supabase
+          toast({
+            title: "Compte créé",
+            description: "Vérifiez votre email pour confirmer votre compte, puis connectez-vous.",
+          });
+          setIsLogin(true);
+        }
       }
     } catch (error: any) {
       toast({
