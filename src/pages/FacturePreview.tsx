@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Download, Edit, Bell } from "lucide-react";
 
 export default function FacturePreview() {
@@ -58,6 +59,25 @@ export default function FacturePreview() {
     setClient(clientData);
     setCompany(companyData);
     setLoading(false);
+  };
+
+  // Calculer les jours de retard
+  const calculateDaysDelay = (): number => {
+    if (!facture?.date_echeance) return 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const echeance = new Date(facture.date_echeance);
+    echeance.setHours(0, 0, 0, 0);
+    const diffTime = today.getTime() - echeance.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
+  };
+
+  // Vérifier si la facture est en retard et doit être relancée
+  const isOverdueAndNotRelanced = (): boolean => {
+    if (!facture?.date_echeance) return false;
+    const joursRetard = calculateDaysDelay();
+    return joursRetard > 0 && !facture.relance_envoyee;
   };
 
   const handleDownloadPDF = async () => {
@@ -137,7 +157,7 @@ export default function FacturePreview() {
     }
   };
 
-  const handleRelance = () => {
+  const handleRelance = async () => {
     if (!client?.email) {
       toast({
         variant: "destructive",
@@ -147,20 +167,77 @@ export default function FacturePreview() {
       return;
     }
 
-    const dateEmission = new Date(facture.date_emission).toLocaleDateString("fr-FR");
-    const subject = encodeURIComponent(`Relance concernant votre facture ${facture.reference}`);
-    const body = encodeURIComponent(
-      `Bonjour ${client.prenom || ""},\n\n` +
-      `Je me permets de revenir vers vous au sujet de la facture que je vous ai envoyée le ${dateEmission}.\n\n` +
-      `Avez-vous pu en prendre connaissance ?\n\n` +
-      `N'hésitez pas à me dire si vous souhaitez en discuter ou ajuster certains points, je reste à votre disposition.\n\n` +
-      `Bien cordialement,\n` +
-      `${company?.nom_entreprise || ""}\n` +
-      `${company?.email || ""}\n` +
-      `${company?.telephone || ""}`
-    );
+    if (!facture?.date_echeance) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Cette facture n'a pas de date d'échéance.",
+      });
+      return;
+    }
 
-    window.location.href = `mailto:${client.email}?subject=${subject}&body=${body}`;
+    const joursRetard = calculateDaysDelay();
+    
+    if (joursRetard <= 0) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Cette facture n'est pas encore en retard.",
+      });
+      return;
+    }
+
+    try {
+      // Mettre à jour relance_envoyee dans la base de données
+      const { error: updateError } = await supabase
+        .from("factures")
+        .update({ relance_envoyee: true })
+        .eq("id", id);
+
+      if (updateError) {
+        console.error("Erreur mise à jour relance:", updateError);
+        // Continuer quand même pour ouvrir le mailto
+      } else {
+        // Recharger la facture pour mettre à jour l'état
+        setFacture((prev: any) => ({ ...prev, relance_envoyee: true }));
+      }
+
+      // Préparer le template email
+      const prenom = client.prenom || "";
+      const nomEntreprise = company?.nom_entreprise || "";
+      const emailEntreprise = company?.email || "";
+      const telephoneEntreprise = company?.telephone || "";
+      const totalTTC = facture.total_ttc?.toFixed(2) || "0.00";
+
+      const subject = encodeURIComponent(
+        `Relance facture ${facture.reference} (${joursRetard} jour${joursRetard > 1 ? "s" : ""} de retard)`
+      );
+
+      const body = encodeURIComponent(
+        `Bonjour ${prenom},\n\n` +
+        `Votre facture ${facture.reference} d'un montant de ${totalTTC} € est en retard de ${joursRetard} jour${joursRetard > 1 ? "s" : ""}.\n\n` +
+        `Merci de procéder au règlement dans les plus brefs délais.\n\n` +
+        `Cordialement,\n` +
+        `${nomEntreprise}\n` +
+        `${emailEntreprise}\n` +
+        `${telephoneEntreprise}`
+      );
+
+      // Ouvrir le client mail
+      window.location.href = `mailto:${client.email}?subject=${subject}&body=${body}`;
+
+      toast({
+        title: "Email préparé",
+        description: "Votre client mail s'ouvre avec le message de relance pré-rempli.",
+      });
+    } catch (error: any) {
+      console.error("Erreur relance:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: error.message || "Impossible de préparer la relance.",
+      });
+    }
   };
 
   if (loading) {
@@ -180,37 +257,57 @@ export default function FacturePreview() {
   }
 
   const lignes = facture.lignes_prestation || [];
+  const joursRetard = calculateDaysDelay();
+  const showRelanceBadge = isOverdueAndNotRelanced();
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <Button variant="ghost" onClick={() => navigate("/interventions-devis")}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Retour
         </Button>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button variant="outline" onClick={() => navigate(`/facture/${id}/edit`)}>
             <Edit className="h-4 w-4 mr-2" />
-            Modifier
+            <span className="hidden md:inline">Modifier</span>
+            <span className="md:hidden">Modif.</span>
           </Button>
-          <Button variant="outline" onClick={handleRelance}>
-            <Bell className="h-4 w-4 md:mr-2" />
-            <span className="hidden md:inline">Relancer</span>
-          </Button>
+          {showRelanceBadge && (
+            <Button 
+              variant="default" 
+              onClick={handleRelance}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              <Bell className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Relancer</span>
+              <span className="md:hidden">Relancer</span>
+            </Button>
+          )}
           <Button onClick={handleDownloadPDF}>
             <Download className="h-4 w-4 mr-2" />
-            Télécharger PDF
+            <span className="hidden md:inline">Télécharger PDF</span>
+            <span className="md:hidden">PDF</span>
           </Button>
         </div>
       </div>
 
       <Card className="p-8">
         <div className="space-y-8">
-          {/* En-tête */}
-          <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-3xl font-bold">FACTURE</h1>
-              <p className="text-muted-foreground">{facture.reference}</p>
+          {/* En-tête avec badge */}
+          <div className="flex justify-between items-start flex-wrap gap-4">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3 flex-wrap">
+                <div>
+                  <h1 className="text-3xl font-bold">FACTURE</h1>
+                  <p className="text-muted-foreground">{facture.reference}</p>
+                </div>
+                {showRelanceBadge && (
+                  <Badge variant="destructive" className="text-sm px-3 py-1 whitespace-nowrap">
+                    À relancer ({joursRetard} jour{joursRetard > 1 ? "s" : ""} de retard)
+                  </Badge>
+                )}
+              </div>
             </div>
             {company && (
               <div className="text-right">
@@ -242,7 +339,7 @@ export default function FacturePreview() {
           )}
 
           {/* Dates et statut */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <p className="text-sm text-muted-foreground">Date d'émission</p>
               <p className="font-medium">
@@ -252,8 +349,13 @@ export default function FacturePreview() {
             {facture.date_echeance && (
               <div>
                 <p className="text-sm text-muted-foreground">Date d'échéance</p>
-                <p className="font-medium">
+                <p className={`font-medium ${joursRetard > 0 ? 'text-red-600' : ''}`}>
                   {new Date(facture.date_echeance).toLocaleDateString('fr-FR')}
+                  {joursRetard > 0 && (
+                    <span className="text-xs ml-2 block sm:inline">
+                      ({joursRetard} jour{joursRetard > 1 ? "s" : ""} de retard)
+                    </span>
+                  )}
                 </p>
               </div>
             )}

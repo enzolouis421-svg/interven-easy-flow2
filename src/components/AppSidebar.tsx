@@ -20,7 +20,8 @@ const menuItems = [
   { title: "Tableau de bord", url: "/dashboard", icon: Home },
   { title: "Interventions & Devis", url: "/interventions-devis", icon: ClipboardList },
   { title: "Clients", url: "/clients", icon: Users },
-  { title: "Calendrier", url: "/calendar", icon: Calendar },
+  // Calendrier masqué pour usage solo - peut être réactivé via feature flag
+  { title: "Calendrier", url: "/calendar", icon: Calendar, hidden: true },
   { title: "Paramètres", url: "/settings", icon: Settings },
 ];
 
@@ -61,7 +62,7 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-2 px-3">
-              {menuItems.map((item, index) => (
+              {menuItems.filter(item => !item.hidden).map((item, index) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                       <NavLink

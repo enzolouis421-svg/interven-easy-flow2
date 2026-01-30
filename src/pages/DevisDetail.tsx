@@ -559,76 +559,81 @@ export default function DevisDetail() {
           </CardHeader>
           <CardContent className="p-4 md:p-6 pt-0">
             <div className="space-y-3 md:space-y-4">
-              {devis.lignes_prestation.map((ligne, index) => (
-                <div key={ligne.id} className="grid grid-cols-1 sm:grid-cols-12 gap-3 md:gap-4 items-end p-3 md:p-4 border rounded">
-                  <div className="sm:col-span-12">
-                    <Label className="text-sm">Description *</Label>
-                    <Textarea
-                      value={ligne.description}
-                      onChange={(e) => updateLigne(index, "description", e.target.value)}
-                      placeholder="Description de la prestation"
-                      rows={2}
-                      className="text-sm"
-                      required
-                    />
-                  </div>
-                  <div className="sm:col-span-3">
-                    <Label className="text-sm">Quantité *</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0.01"
-                      value={ligne.quantite}
-                      onChange={(e) => updateLigne(index, "quantite", parseFloat(e.target.value))}
-                      className="text-sm"
-                      required
-                    />
-                  </div>
-                  <div className="sm:col-span-3">
-                    <Label className="text-sm">Prix unit. HT *</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={ligne.prix_unitaire}
-                      onChange={(e) => updateLigne(index, "prix_unitaire", parseFloat(e.target.value))}
-                      className="text-sm"
-                      required
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <Label className="text-sm">TVA %</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={ligne.tva}
-                      onChange={(e) => updateLigne(index, "tva", parseFloat(e.target.value))}
-                      className="text-sm"
-                    />
-                  </div>
-                  <div className="sm:col-span-3">
-                    <Label className="text-sm">Total HT</Label>
-                    <Input
-                      type="text"
-                      value={(ligne.quantite * ligne.prix_unitaire).toFixed(2) + " €"}
-                      className="text-sm"
-                      disabled
-                    />
-                  </div>
-                  <div className="sm:col-span-1 flex items-end">
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      onClick={() => removeLigne(index)}
-                      className="w-full sm:w-auto"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+              {/* Container avec scroll horizontal sur mobile */}
+              <div className="overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0">
+                <div className="min-w-[600px] md:min-w-0 space-y-3 md:space-y-4">
+                  {devis.lignes_prestation.map((ligne, index) => (
+                    <div key={ligne.id} className="grid grid-cols-12 gap-3 md:gap-4 items-end p-3 md:p-4 border rounded">
+                      <div className="col-span-12">
+                        <Label className="text-sm">Description *</Label>
+                        <Textarea
+                          value={ligne.description}
+                          onChange={(e) => updateLigne(index, "description", e.target.value)}
+                          placeholder="Description de la prestation"
+                          rows={2}
+                          className="text-sm"
+                          required
+                        />
+                      </div>
+                      <div className="col-span-3">
+                        <Label className="text-sm">Quantité *</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0.01"
+                          value={ligne.quantite}
+                          onChange={(e) => updateLigne(index, "quantite", parseFloat(e.target.value))}
+                          className="text-sm"
+                          required
+                        />
+                      </div>
+                      <div className="col-span-3">
+                        <Label className="text-sm">Prix unit. HT *</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={ligne.prix_unitaire}
+                          onChange={(e) => updateLigne(index, "prix_unitaire", parseFloat(e.target.value))}
+                          className="text-sm"
+                          required
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <Label className="text-sm">TVA %</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={ligne.tva}
+                          onChange={(e) => updateLigne(index, "tva", parseFloat(e.target.value))}
+                          className="text-sm"
+                        />
+                      </div>
+                      <div className="col-span-3">
+                        <Label className="text-sm">Total HT</Label>
+                        <Input
+                          type="text"
+                          value={(ligne.quantite * ligne.prix_unitaire).toFixed(2) + " €"}
+                          className="text-sm"
+                          disabled
+                        />
+                      </div>
+                      <div className="col-span-1 flex items-end">
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          onClick={() => removeLigne(index)}
+                          className="w-full"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
             </div>
 
             <div className="mt-4 md:mt-6 space-y-1.5 md:space-y-2 text-right border-t pt-3 md:pt-4">

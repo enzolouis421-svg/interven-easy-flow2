@@ -104,15 +104,36 @@ export default function InterventionDetail() {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
+    // Prévisualisation immédiate avec FileReader
+    const previewUrls: string[] = [];
+    const fileArray = Array.from(files);
+    
+    // Créer des URLs de prévisualisation immédiatement
+    for (const file of fileArray) {
+      const previewUrl = URL.createObjectURL(file);
+      previewUrls.push(previewUrl);
+    }
+
+    // Ajouter les prévisualisations immédiatement
+    setFormData((prev) => ({
+      ...prev,
+      photos: [...prev.photos, ...previewUrls],
+    }));
+
+    // Upload en arrière-plan
     setUploading(true);
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      setUploading(false);
+      return;
+    }
 
     const uploadedUrls: string[] = [];
 
-    for (const file of Array.from(files)) {
+    for (let i = 0; i < fileArray.length; i++) {
+      const file = fileArray[i];
       const fileExt = file.name.split(".").pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}/${Date.now()}-${i}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from("intervention-photos")
@@ -122,14 +143,35 @@ export default function InterventionDetail() {
         const { data } = supabase.storage
           .from("intervention-photos")
           .getPublicUrl(fileName);
+        
+        // Remplacer la prévisualisation par l'URL réelle
+        setFormData((prev) => {
+          const newPhotos = [...prev.photos];
+          const previewIndex = prev.photos.length - fileArray.length + i;
+          if (newPhotos[previewIndex] && newPhotos[previewIndex].startsWith('blob:')) {
+            URL.revokeObjectURL(newPhotos[previewIndex]);
+          }
+          newPhotos[previewIndex] = data.publicUrl;
+          return { ...prev, photos: newPhotos };
+        });
+        
         uploadedUrls.push(data.publicUrl);
+      } else {
+        // En cas d'erreur, retirer la prévisualisation
+        setFormData((prev) => {
+          const newPhotos = [...prev.photos];
+          const previewIndex = prev.photos.length - fileArray.length + i;
+          if (newPhotos[previewIndex] && newPhotos[previewIndex].startsWith('blob:')) {
+            URL.revokeObjectURL(newPhotos[previewIndex]);
+          }
+          return {
+            ...prev,
+            photos: newPhotos.filter((_, idx) => idx !== previewIndex),
+          };
+        });
       }
     }
 
-    setFormData((prev) => ({
-      ...prev,
-      photos: [...prev.photos, ...uploadedUrls],
-    }));
     setUploading(false);
     toast({
       title: "Photos ajoutées",
@@ -436,18 +478,6 @@ export default function InterventionDetail() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Description du problème</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                rows={3}
-              />
-            </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="date" className="text-sm">Date et heure</Label>
@@ -486,6 +516,18 @@ export default function InterventionDetail() {
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="description">Description du problème</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+                rows={3}
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="materiel">Matériel utilisé</Label>
               <Textarea
                 id="materiel"
@@ -498,7 +540,7 @@ export default function InterventionDetail() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="commentaire">Commentaire du technicien</Label>
+              <Label htmlFor="commentaire">Commentaires</Label>
               <Textarea
                 id="commentaire"
                 value={formData.commentaire_technicien}
@@ -575,11 +617,14 @@ export default function InterventionDetail() {
                 <SignatureCanvas
                   ref={signatureRef}
                   canvasProps={{
-                    className: "signature-canvas w-full h-32",
-                    style: { fontFamily: "'Dancing Script', 'Kalam', 'Caveat', cursive" }
+                    className: "signature-canvas w-full h-40 sm:h-32",
+                    style: { 
+                      fontFamily: "'Dancing Script', 'Kalam', 'Caveat', cursive",
+                      touchAction: "none"
+                    }
                   }}
                 />
-                <p className="signature-legal-text">
+                <p className="text-xs text-muted-foreground mt-2">
                   Signature électronique à valeur légale - Date: {new Date().toLocaleDateString('fr-FR')} {new Date().toLocaleTimeString('fr-FR')}
                 </p>
                 <Button
@@ -587,7 +632,7 @@ export default function InterventionDetail() {
                   variant="outline"
                   size="sm"
                   onClick={() => signatureRef.current?.clear()}
-                  className="mt-2"
+                  className="mt-2 w-full sm:w-auto"
                 >
                   Effacer
                 </Button>
