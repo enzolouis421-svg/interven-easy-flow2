@@ -313,23 +313,45 @@ function generateFactureHTML(data: any) {
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     @page { margin: 20mm; size: A4; }
     body { font-family: Arial, sans-serif; padding: 0; color: #111827; background: #fff; font-size: 11px; }
-    .container { width: 100%; max-width: 100%; margin: 0; background: white; padding: 20px; }
-    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-    .facture-title h1 { font-size: 24px; font-weight: bold; margin-bottom: 4px; }
-    .facture-ref { font-size: 11px; color: #6b7280; }
-    .company-info { text-align: right; max-width: 50%; }
-    .company-name { font-weight: bold; margin-bottom: 4px; font-size: 14px; word-wrap: break-word; }
-    .company-details { font-size: 10px; color: #6b7280; line-height: 1.4; }
+    .container { width: 100%; max-width: 100%; margin: 0; background: white; padding: 15px 20px; }
+    .header { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; }
+    @media (min-width: 600px) {
+      .header { flex-direction: row; justify-content: space-between; align-items: flex-start; }
+    }
+    .facture-title h1 { font-size: 20px; font-weight: bold; margin-bottom: 4px; }
+    @media (min-width: 600px) {
+      .facture-title h1 { font-size: 24px; }
+    }
+    .facture-ref { font-size: 10px; color: #6b7280; }
+    @media (min-width: 600px) {
+      .facture-ref { font-size: 11px; }
+    }
+    .company-info { text-align: left; margin-top: 10px; }
+    @media (min-width: 600px) {
+      .company-info { text-align: right; max-width: 50%; margin-top: 0; }
+    }
+    .company-name { font-weight: bold; margin-bottom: 4px; font-size: 12px; word-wrap: break-word; }
+    @media (min-width: 600px) {
+      .company-name { font-size: 14px; }
+    }
+    .company-details { font-size: 9px; color: #6b7280; line-height: 1.4; }
+    @media (min-width: 600px) {
+      .company-details { font-size: 10px; }
+    }
     .client-section { margin-bottom: 20px; }
     .client-label { font-weight: 600; margin-bottom: 6px; font-size: 12px; }
     .client-block { background: #f3f4f6; padding: 12px; border-radius: 6px; }
     .client-name { font-weight: 500; margin-bottom: 4px; font-size: 11px; word-wrap: break-word; }
     .client-details { font-size: 10px; color: #6b7280; line-height: 1.4; }
-    .dates-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+    .dates-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 20px; }
+    @media (min-width: 600px) {
+      .dates-grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    }
     .date-item { }
     .date-label { font-size: 10px; color: #6b7280; margin-bottom: 4px; }
     .date-value { font-weight: 500; font-size: 11px; }
