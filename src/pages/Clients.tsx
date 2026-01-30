@@ -209,7 +209,8 @@ export default function Clients() {
                   />
                 </div>
               </div>
-              <div className="space-y-2">
+              {/* Champ entreprise masqué pour usage solo - conservé en base pour compatibilité */}
+              <div className="space-y-2 hidden">
                 <Label htmlFor="entreprise">Entreprise</Label>
                 <Input
                   id="entreprise"
