@@ -242,38 +242,38 @@ export default function FactureDetail() {
   const totals = calculateTotals();
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Retour
+    <div className="container mx-auto py-3 sm:py-6 space-y-3 sm:space-y-6 px-2 sm:px-0">
+      <div className="flex items-center justify-between flex-wrap gap-2 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <Button variant="ghost" onClick={() => navigate(-1)} className="h-8 w-8 sm:h-10 sm:w-10 p-0">
+            <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h1 className="text-3xl font-bold">
+          <h1 className="text-lg sm:text-2xl md:text-3xl font-bold">
             {id ? "Modifier la facture" : "Nouvelle facture"}
           </h1>
         </div>
       </div>
 
-      <div className="grid gap-6">
+      <div className="grid gap-3 sm:gap-6">
         <Card>
-          <CardHeader>
-            <CardTitle>Informations générales</CardTitle>
+          <CardHeader className="p-3 sm:p-4 md:p-6">
+            <CardTitle className="text-sm sm:text-base md:text-lg">Informations générales</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-4 md:p-6 pt-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3 md:gap-4">
               <div className="space-y-2">
-                <Label>Référence *</Label>
+                <Label className="text-xs sm:text-sm">Référence *</Label>
                 <Input
                   value={reference}
                   onChange={(e) => setReference(e.target.value)}
                   placeholder="FAC-00001"
+                  className="text-sm"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Client *</Label>
+                <Label className="text-xs sm:text-sm">Client *</Label>
                 <Select value={clientId} onValueChange={setClientId}>
-                  <SelectTrigger>
+                  <SelectTrigger className="text-sm">
                     <SelectValue placeholder="Sélectionner un client" />
                   </SelectTrigger>
                   <SelectContent>
@@ -286,25 +286,27 @@ export default function FactureDetail() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Date d'émission *</Label>
+                <Label className="text-xs sm:text-sm">Date d'émission *</Label>
                 <Input
                   type="date"
                   value={dateEmission}
                   onChange={(e) => setDateEmission(e.target.value)}
+                  className="text-sm"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Date d'échéance</Label>
+                <Label className="text-xs sm:text-sm">Date d'échéance</Label>
                 <Input
                   type="date"
                   value={dateEcheance}
                   onChange={(e) => setDateEcheance(e.target.value)}
+                  className="text-sm"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Statut</Label>
+                <Label className="text-xs sm:text-sm">Statut</Label>
                 <Select value={statut} onValueChange={setStatut}>
-                  <SelectTrigger>
+                  <SelectTrigger className="text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -320,70 +322,82 @@ export default function FactureDetail() {
         </Card>
 
         <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Lignes de prestation</CardTitle>
-              <Button onClick={addLigne} size="sm">
-                <Plus className="h-4 w-4 mr-2" />
+          <CardHeader className="p-3 sm:p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+              <CardTitle className="text-sm sm:text-base md:text-lg">Lignes de prestation</CardTitle>
+              <Button onClick={addLigne} size="sm" className="w-full sm:w-auto text-xs sm:text-sm">
+                <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                 Ajouter une ligne
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {lignes.map((ligne, index) => (
-              <div key={index} className="flex gap-2 items-start border-b pb-4">
-                <div className="flex-1 space-y-2">
-                  <Input
-                    placeholder="Description"
-                    value={ligne.description}
-                    onChange={(e) => updateLigne(index, "description", e.target.value)}
-                  />
-                </div>
-                <div className="w-24 space-y-2">
-                  <Input
-                    type="number"
-                    placeholder="Qté"
-                    value={ligne.quantite}
-                    onChange={(e) => updateLigne(index, "quantite", parseFloat(e.target.value) || 0)}
-                  />
-                </div>
-                <div className="w-32 space-y-2">
-                  <Input
-                    type="number"
-                    placeholder="Prix HT"
-                    value={ligne.prix_unitaire}
-                    onChange={(e) => updateLigne(index, "prix_unitaire", parseFloat(e.target.value) || 0)}
-                  />
-                </div>
-                <div className="w-24 space-y-2">
-                  <Input
-                    type="number"
-                    placeholder="TVA %"
-                    value={ligne.tva}
-                    onChange={(e) => updateLigne(index, "tva", parseFloat(e.target.value) || 0)}
-                  />
-                </div>
-                <Button
-                  variant="destructive"
-                  size="icon"
-                  onClick={() => removeLigne(index)}
-                  disabled={lignes.length === 1}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+          <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-4 md:p-6 pt-0">
+            {/* Container avec scroll horizontal sur mobile */}
+            <div className="overflow-x-auto -mx-2 sm:-mx-4 md:mx-0 px-2 sm:px-4 md:px-0">
+              <div className="min-w-[600px] md:min-w-0 space-y-3 sm:space-y-4">
+                {lignes.map((ligne, index) => (
+                  <div key={index} className="grid grid-cols-12 gap-2 sm:gap-3 items-end border-b pb-3 sm:pb-4">
+                    <div className="col-span-12 sm:col-span-5 space-y-2">
+                      <Input
+                        placeholder="Description"
+                        value={ligne.description}
+                        onChange={(e) => updateLigne(index, "description", e.target.value)}
+                        className="text-xs sm:text-sm"
+                      />
+                    </div>
+                    <div className="col-span-3 sm:col-span-2 space-y-2">
+                      <Input
+                        type="number"
+                        placeholder="Qté"
+                        value={ligne.quantite}
+                        onChange={(e) => updateLigne(index, "quantite", parseFloat(e.target.value) || 0)}
+                        className="text-xs sm:text-sm"
+                      />
+                    </div>
+                    <div className="col-span-4 sm:col-span-2 space-y-2">
+                      <Input
+                        type="number"
+                        placeholder="Prix HT"
+                        value={ligne.prix_unitaire}
+                        onChange={(e) => updateLigne(index, "prix_unitaire", parseFloat(e.target.value) || 0)}
+                        className="text-xs sm:text-sm"
+                      />
+                    </div>
+                    <div className="col-span-3 sm:col-span-2 space-y-2">
+                      <Input
+                        type="number"
+                        placeholder="TVA %"
+                        value={ligne.tva}
+                        onChange={(e) => updateLigne(index, "tva", parseFloat(e.target.value) || 0)}
+                        className="text-xs sm:text-sm"
+                      />
+                    </div>
+                    <div className="col-span-2 sm:col-span-1 flex items-end">
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => removeLigne(index)}
+                        disabled={lignes.length === 1}
+                        className="h-8 w-8 sm:h-10 sm:w-10"
+                      >
+                        <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
 
-            <div className="space-y-2 pt-4 border-t">
-              <div className="flex justify-between text-sm">
+            <div className="space-y-1.5 sm:space-y-2 pt-3 sm:pt-4 border-t text-right">
+              <div className="flex justify-between text-xs sm:text-sm">
                 <span>Total HT:</span>
                 <span className="font-medium">{totals.totalHT.toFixed(2)} €</span>
               </div>
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between text-xs sm:text-sm">
                 <span>TVA:</span>
                 <span className="font-medium">{totals.totalTVA.toFixed(2)} €</span>
               </div>
-              <div className="flex justify-between text-lg font-bold">
+              <div className="flex justify-between text-base sm:text-lg font-bold">
                 <span>Total TTC:</span>
                 <span>{totals.totalTTC.toFixed(2)} €</span>
               </div>
@@ -392,35 +406,37 @@ export default function FactureDetail() {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Informations complémentaires</CardTitle>
+          <CardHeader className="p-3 sm:p-4 md:p-6">
+            <CardTitle className="text-sm sm:text-base md:text-lg">Informations complémentaires</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-4 md:p-6 pt-0">
             <div className="space-y-2">
-              <Label>Conditions de paiement</Label>
+              <Label className="text-xs sm:text-sm">Conditions de paiement</Label>
               <Input
                 value={conditionsPaiement}
                 onChange={(e) => setConditionsPaiement(e.target.value)}
                 placeholder="Paiement à réception de facture"
+                className="text-sm"
               />
             </div>
             <div className="space-y-2">
-              <Label>Notes</Label>
+              <Label className="text-xs sm:text-sm">Notes</Label>
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Notes complémentaires..."
                 rows={4}
+                className="text-sm"
               />
             </div>
           </CardContent>
         </Card>
 
-        <div className="flex gap-4 justify-end">
-          <Button variant="outline" onClick={() => navigate(-1)}>
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-end">
+          <Button variant="outline" onClick={() => navigate(-1)} className="w-full sm:w-auto text-sm sm:text-base">
             Annuler
           </Button>
-          <Button onClick={handleSubmit} disabled={loading}>
+          <Button onClick={handleSubmit} disabled={loading} className="w-full sm:w-auto text-sm sm:text-base">
             {loading ? "Enregistrement..." : id ? "Mettre à jour" : "Créer la facture"}
           </Button>
         </div>

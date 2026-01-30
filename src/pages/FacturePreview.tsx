@@ -261,15 +261,15 @@ export default function FacturePreview() {
   const showRelanceBadge = isOverdueAndNotRelanced();
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <Button variant="ghost" onClick={() => navigate("/interventions-devis")}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
+    <div className="container mx-auto py-3 sm:py-6 space-y-3 sm:space-y-6 px-2 sm:px-0">
+      <div className="flex items-center justify-between flex-wrap gap-2 sm:gap-3">
+        <Button variant="ghost" onClick={() => navigate("/interventions-devis")} className="text-sm sm:text-base">
+          <ArrowLeft className="h-4 w-4 mr-1 sm:mr-2" />
           Retour
         </Button>
         <div className="flex gap-2 flex-wrap">
-          <Button variant="outline" onClick={() => navigate(`/facture/${id}/edit`)}>
-            <Edit className="h-4 w-4 mr-2" />
+          <Button variant="outline" onClick={() => navigate(`/facture/${id}/edit`)} className="text-xs sm:text-sm">
+            <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
             <span className="hidden md:inline">Modifier</span>
             <span className="md:hidden">Modif.</span>
           </Button>
@@ -277,46 +277,46 @@ export default function FacturePreview() {
             <Button 
               variant="default" 
               onClick={handleRelance}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm"
             >
-              <Bell className="h-4 w-4 md:mr-2" />
+              <Bell className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
               <span className="hidden md:inline">Relancer</span>
               <span className="md:hidden">Relancer</span>
             </Button>
           )}
-          <Button onClick={handleDownloadPDF}>
-            <Download className="h-4 w-4 mr-2" />
+          <Button onClick={handleDownloadPDF} className="text-xs sm:text-sm">
+            <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
             <span className="hidden md:inline">Télécharger PDF</span>
             <span className="md:hidden">PDF</span>
           </Button>
         </div>
       </div>
 
-      <Card className="p-8">
-        <div className="space-y-8">
+      <Card className="p-3 sm:p-4 md:p-8">
+        <div className="space-y-4 sm:space-y-6 md:space-y-8">
           {/* En-tête avec badge */}
-          <div className="flex justify-between items-start flex-wrap gap-4">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 sm:gap-4">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
                 <div>
-                  <h1 className="text-3xl font-bold">FACTURE</h1>
-                  <p className="text-muted-foreground">{facture.reference}</p>
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">FACTURE</h1>
+                  <p className="text-xs sm:text-sm text-muted-foreground">{facture.reference}</p>
                 </div>
                 {showRelanceBadge && (
-                  <Badge variant="destructive" className="text-sm px-3 py-1 whitespace-nowrap">
+                  <Badge variant="destructive" className="text-xs sm:text-sm px-2 sm:px-3 py-1 whitespace-nowrap w-fit">
                     À relancer ({joursRetard} jour{joursRetard > 1 ? "s" : ""} de retard)
                   </Badge>
                 )}
               </div>
             </div>
             {company && (
-              <div className="text-right">
-                <p className="font-bold">{company.nom_entreprise}</p>
-                <p className="text-sm">{company.adresse}</p>
-                <p className="text-sm">{company.code_postal} {company.ville}</p>
-                {company.siret && <p className="text-sm">SIRET: {company.siret}</p>}
-                <p className="text-sm">{company.email}</p>
-                <p className="text-sm">{company.telephone}</p>
+              <div className="text-left sm:text-right text-xs sm:text-sm">
+                <p className="font-bold text-sm sm:text-base">{company.nom_entreprise}</p>
+                <p>{company.adresse}</p>
+                <p>{company.code_postal} {company.ville}</p>
+                {company.siret && <p>SIRET: {company.siret}</p>}
+                <p>{company.email}</p>
+                <p>{company.telephone}</p>
               </div>
             )}
           </div>
@@ -324,8 +324,8 @@ export default function FacturePreview() {
           {/* Informations client */}
           {client && (
             <div>
-              <p className="font-semibold mb-2">Client</p>
-              <div className="bg-muted p-4 rounded">
+              <p className="font-semibold mb-2 text-sm sm:text-base">Client</p>
+              <div className="bg-muted p-3 sm:p-4 rounded text-xs sm:text-sm">
                 <p className="font-medium">{client.nom}</p>
                 {client.entreprise && <p>{client.entreprise}</p>}
                 {client.adresse && <p>{client.adresse}</p>}
@@ -339,17 +339,17 @@ export default function FacturePreview() {
           )}
 
           {/* Dates et statut */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
             <div>
-              <p className="text-sm text-muted-foreground">Date d'émission</p>
-              <p className="font-medium">
+              <p className="text-xs sm:text-sm text-muted-foreground">Date d'émission</p>
+              <p className="font-medium text-sm sm:text-base">
                 {new Date(facture.date_emission).toLocaleDateString('fr-FR')}
               </p>
             </div>
             {facture.date_echeance && (
               <div>
-                <p className="text-sm text-muted-foreground">Date d'échéance</p>
-                <p className={`font-medium ${joursRetard > 0 ? 'text-red-600' : ''}`}>
+                <p className="text-xs sm:text-sm text-muted-foreground">Date d'échéance</p>
+                <p className={`font-medium text-sm sm:text-base ${joursRetard > 0 ? 'text-red-600' : ''}`}>
                   {new Date(facture.date_echeance).toLocaleDateString('fr-FR')}
                   {joursRetard > 0 && (
                     <span className="text-xs ml-2 block sm:inline">
@@ -360,31 +360,31 @@ export default function FacturePreview() {
               </div>
             )}
             <div>
-              <p className="text-sm text-muted-foreground">Statut</p>
-              <p className="font-medium">{facture.statut}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Statut</p>
+              <p className="font-medium text-sm sm:text-base">{facture.statut}</p>
             </div>
           </div>
 
           {/* Lignes de prestation */}
-          <div>
-            <table className="w-full">
+          <div className="overflow-x-auto -mx-3 sm:-mx-4 md:mx-0 px-3 sm:px-4 md:px-0">
+            <table className="w-full min-w-[600px] md:min-w-0 text-xs sm:text-sm">
               <thead className="border-b">
                 <tr>
-                  <th className="text-left py-2">Description</th>
-                  <th className="text-right py-2">Qté</th>
-                  <th className="text-right py-2">Prix HT</th>
-                  <th className="text-right py-2">TVA</th>
-                  <th className="text-right py-2">Total HT</th>
+                  <th className="text-left py-2 font-semibold">Description</th>
+                  <th className="text-right py-2 font-semibold">Qté</th>
+                  <th className="text-right py-2 font-semibold">Prix HT</th>
+                  <th className="text-right py-2 font-semibold">TVA</th>
+                  <th className="text-right py-2 font-semibold">Total HT</th>
                 </tr>
               </thead>
               <tbody>
                 {lignes.map((ligne: any, index: number) => (
                   <tr key={index} className="border-b">
-                    <td className="py-2">{ligne.description}</td>
-                    <td className="text-right">{ligne.quantite}</td>
-                    <td className="text-right">{ligne.prix_unitaire.toFixed(2)} €</td>
-                    <td className="text-right">{ligne.tva}%</td>
-                    <td className="text-right">
+                    <td className="py-2 pr-2">{ligne.description}</td>
+                    <td className="text-right py-2">{ligne.quantite}</td>
+                    <td className="text-right py-2">{ligne.prix_unitaire.toFixed(2)} €</td>
+                    <td className="text-right py-2">{ligne.tva}%</td>
+                    <td className="text-right py-2">
                       {(ligne.quantite * ligne.prix_unitaire).toFixed(2)} €
                     </td>
                   </tr>
@@ -395,7 +395,7 @@ export default function FacturePreview() {
 
           {/* Totaux */}
           <div className="flex justify-end">
-            <div className="w-64 space-y-2">
+            <div className="w-full sm:w-64 space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
               <div className="flex justify-between">
                 <span>Total HT:</span>
                 <span className="font-medium">{facture.total_ht.toFixed(2)} €</span>
@@ -404,7 +404,7 @@ export default function FacturePreview() {
                 <span>TVA:</span>
                 <span className="font-medium">{facture.total_tva.toFixed(2)} €</span>
               </div>
-              <div className="flex justify-between text-lg font-bold border-t pt-2">
+              <div className="flex justify-between text-base sm:text-lg font-bold border-t pt-2">
                 <span>Total TTC:</span>
                 <span>{facture.total_ttc.toFixed(2)} €</span>
               </div>
@@ -414,15 +414,15 @@ export default function FacturePreview() {
           {/* Conditions et notes */}
           {facture.conditions_paiement && (
             <div>
-              <p className="font-semibold mb-2">Conditions de paiement</p>
-              <p className="text-sm text-muted-foreground">{facture.conditions_paiement}</p>
+              <p className="font-semibold mb-2 text-sm sm:text-base">Conditions de paiement</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">{facture.conditions_paiement}</p>
             </div>
           )}
 
           {facture.notes && (
             <div>
-              <p className="font-semibold mb-2">Notes</p>
-              <p className="text-sm text-muted-foreground whitespace-pre-line">{facture.notes}</p>
+              <p className="font-semibold mb-2 text-sm sm:text-base">Notes</p>
+              <p className="text-xs sm:text-sm text-muted-foreground whitespace-pre-line">{facture.notes}</p>
             </div>
           )}
         </div>
