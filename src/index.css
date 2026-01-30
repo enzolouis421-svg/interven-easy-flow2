@@ -221,4 +221,18 @@ All colors MUST be HSL.
     @apply text-xs text-gray-500 italic mt-2 text-center;
     font-family: 'Dancing Script', 'Kalam', 'Caveat', cursive;
   }
+
+  /* Éviter le zoom automatique sur iOS lors du focus sur les inputs */
+  @media screen and (max-width: 768px) {
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="number"],
+    input[type="date"],
+    input[type="datetime-local"],
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
+  }
 }

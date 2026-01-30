@@ -14,7 +14,7 @@ export default function Landing() {
     {
       icon: Users,
       title: "Suivi client",
-      description: "Gérez vos clients et techniciens efficacement",
+      description: "Gérez vos clients et vos relances efficacement",
     },
     {
       icon: Shield,
@@ -45,11 +45,11 @@ export default function Landing() {
       <section className="container mx-auto px-4 py-20 md:py-32">
         <div className="max-w-4xl mx-auto text-center space-y-8 animate-fade-in">
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
-            Gérez vos interventions
+            Gérer votre activité
             <span className="block text-gradient mt-2">en toute simplicité</span>
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            La solution complète pour gérer vos interventions techniques, vos devis, vos clients et votre équipe. 
+            La solution complète pour gérer vos interventions, vos devis, vos clients et vos relances en un clic. 
             Professionnalisez votre activité dès aujourd'hui.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">

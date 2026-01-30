@@ -459,31 +459,31 @@ export default function DevisDetail() {
   };
 
   return (
-    <div className="space-y-4 md:space-y-6 max-w-6xl mx-auto">
-      <div className="flex items-center gap-3 md:gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="flex-shrink-0">
+    <div className="space-y-3 md:space-y-6 max-w-6xl mx-auto px-2 sm:px-0">
+      <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10">
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-xl md:text-3xl font-bold truncate">
+        <h1 className="text-lg sm:text-xl md:text-3xl font-bold truncate">
           {id === "new" ? "Nouveau devis" : "Modifier le devis"}
         </h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-3 md:space-y-6">
         <Card>
-          <CardHeader className="p-4 md:p-6">
-            <CardTitle className="text-base md:text-lg">Informations générales</CardTitle>
+          <CardHeader className="p-3 sm:p-4 md:p-6">
+            <CardTitle className="text-sm sm:text-base md:text-lg">Informations générales</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4 p-4 md:p-6 pt-0">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+          <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-4 md:p-6 pt-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 md:gap-4">
               <div>
-                <Label>Référence</Label>
-                <Input value={devis.reference} disabled />
+                <Label className="text-xs sm:text-sm">Référence</Label>
+                <Input value={devis.reference} disabled className="text-sm" />
               </div>
               <div>
-                <Label>Client *</Label>
+                <Label className="text-xs sm:text-sm">Client *</Label>
                 <select
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border rounded text-sm"
                   value={devis.client_id}
                   onChange={(e) => setDevis({ ...devis, client_id: e.target.value })}
                   required
@@ -497,34 +497,37 @@ export default function DevisDetail() {
                 </select>
               </div>
               <div>
-                <Label>Date de création</Label>
+                <Label className="text-xs sm:text-sm">Date de création</Label>
                 <Input
                   type="date"
                   value={devis.date_creation}
                   onChange={(e) => setDevis({ ...devis, date_creation: e.target.value })}
                   required
+                  className="text-sm"
                 />
               </div>
               <div>
-                <Label>Validité (jours)</Label>
+                <Label className="text-xs sm:text-sm">Validité (jours)</Label>
                 <Input
                   type="number"
                   value={devis.validite_jours}
                   onChange={(e) => setDevis({ ...devis, validite_jours: parseInt(e.target.value) })}
+                  className="text-sm"
                 />
               </div>
               <div>
-                <Label>Délai de réalisation</Label>
+                <Label className="text-xs sm:text-sm">Délai de réalisation</Label>
                 <Input
                   value={devis.delai_realisation}
                   onChange={(e) => setDevis({ ...devis, delai_realisation: e.target.value })}
                   placeholder="Ex: 2 semaines"
+                  className="text-sm"
                 />
               </div>
               <div>
-                <Label>Statut</Label>
+                <Label className="text-xs sm:text-sm">Statut</Label>
                 <select
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border rounded text-sm"
                   value={devis.statut}
                   onChange={(e) => setDevis({ ...devis, statut: e.target.value })}
                 >
@@ -548,74 +551,74 @@ export default function DevisDetail() {
         </Card>
 
         <Card>
-          <CardHeader className="p-4 md:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <CardTitle className="text-base md:text-lg">Lignes de prestation</CardTitle>
-              <Button type="button" onClick={addLigne} size="sm" className="w-full sm:w-auto">
-                <Plus className="h-4 w-4 mr-2" />
+          <CardHeader className="p-3 sm:p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
+              <CardTitle className="text-sm sm:text-base md:text-lg">Lignes de prestation</CardTitle>
+              <Button type="button" onClick={addLigne} size="sm" className="w-full sm:w-auto text-xs sm:text-sm">
+                <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                 Ajouter une ligne
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="p-4 md:p-6 pt-0">
-            <div className="space-y-3 md:space-y-4">
+          <CardContent className="p-3 sm:p-4 md:p-6 pt-0">
+            <div className="space-y-2 sm:space-y-3 md:space-y-4">
               {/* Container avec scroll horizontal sur mobile */}
-              <div className="overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0">
-                <div className="min-w-[600px] md:min-w-0 space-y-3 md:space-y-4">
+              <div className="overflow-x-auto -mx-2 sm:-mx-4 md:mx-0 px-2 sm:px-4 md:px-0">
+                <div className="min-w-[550px] sm:min-w-[600px] md:min-w-0 space-y-2 sm:space-y-3 md:space-y-4">
                   {devis.lignes_prestation.map((ligne, index) => (
-                    <div key={ligne.id} className="grid grid-cols-12 gap-3 md:gap-4 items-end p-3 md:p-4 border rounded">
+                    <div key={ligne.id} className="grid grid-cols-12 gap-2 sm:gap-3 md:gap-4 items-end p-2 sm:p-3 md:p-4 border rounded">
                       <div className="col-span-12">
-                        <Label className="text-sm">Description *</Label>
+                        <Label className="text-xs sm:text-sm">Description *</Label>
                         <Textarea
                           value={ligne.description}
                           onChange={(e) => updateLigne(index, "description", e.target.value)}
                           placeholder="Description de la prestation"
                           rows={2}
-                          className="text-sm"
+                          className="text-xs sm:text-sm"
                           required
                         />
                       </div>
                       <div className="col-span-3">
-                        <Label className="text-sm">Quantité *</Label>
+                        <Label className="text-xs sm:text-sm">Quantité *</Label>
                         <Input
                           type="number"
                           step="0.01"
                           min="0.01"
                           value={ligne.quantite}
                           onChange={(e) => updateLigne(index, "quantite", parseFloat(e.target.value))}
-                          className="text-sm"
+                          className="text-xs sm:text-sm"
                           required
                         />
                       </div>
                       <div className="col-span-3">
-                        <Label className="text-sm">Prix unit. HT *</Label>
+                        <Label className="text-xs sm:text-sm">Prix unit. HT *</Label>
                         <Input
                           type="number"
                           step="0.01"
                           min="0"
                           value={ligne.prix_unitaire}
                           onChange={(e) => updateLigne(index, "prix_unitaire", parseFloat(e.target.value))}
-                          className="text-sm"
+                          className="text-xs sm:text-sm"
                           required
                         />
                       </div>
                       <div className="col-span-2">
-                        <Label className="text-sm">TVA %</Label>
+                        <Label className="text-xs sm:text-sm">TVA %</Label>
                         <Input
                           type="number"
                           step="0.01"
                           min="0"
                           value={ligne.tva}
                           onChange={(e) => updateLigne(index, "tva", parseFloat(e.target.value))}
-                          className="text-sm"
+                          className="text-xs sm:text-sm"
                         />
                       </div>
                       <div className="col-span-3">
-                        <Label className="text-sm">Total HT</Label>
+                        <Label className="text-xs sm:text-sm">Total HT</Label>
                         <Input
                           type="text"
                           value={(ligne.quantite * ligne.prix_unitaire).toFixed(2) + " €"}
-                          className="text-sm"
+                          className="text-xs sm:text-sm"
                           disabled
                         />
                       </div>
@@ -625,9 +628,9 @@ export default function DevisDetail() {
                           variant="destructive"
                           size="icon"
                           onClick={() => removeLigne(index)}
-                          className="w-full"
+                          className="w-full h-8 w-8 sm:h-10 sm:w-10"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                       </div>
                     </div>
@@ -647,35 +650,37 @@ export default function DevisDetail() {
         </Card>
 
         <Card>
-          <CardHeader className="p-4 md:p-6">
-            <CardTitle className="text-base md:text-lg">Conditions et notes</CardTitle>
+          <CardHeader className="p-3 sm:p-4 md:p-6">
+            <CardTitle className="text-sm sm:text-base md:text-lg">Conditions et notes</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4 p-4 md:p-6 pt-0">
+          <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-4 md:p-6 pt-0">
             <div>
-              <Label>Conditions de paiement</Label>
+              <Label className="text-xs sm:text-sm">Conditions de paiement</Label>
               <Input
                 value={devis.conditions_paiement}
                 onChange={(e) => setDevis({ ...devis, conditions_paiement: e.target.value })}
+                className="text-sm"
               />
             </div>
             <div>
-              <Label>Notes additionnelles</Label>
+              <Label className="text-xs sm:text-sm">Notes additionnelles</Label>
               <Textarea
                 value={devis.notes}
                 onChange={(e) => setDevis({ ...devis, notes: e.target.value })}
                 rows={3}
                 placeholder="Notes additionnelles"
+                className="text-sm"
               />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="p-4 md:p-6">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base md:text-lg">Signatures</CardTitle>
+          <CardHeader className="p-3 sm:p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+              <CardTitle className="text-sm sm:text-base md:text-lg">Signatures</CardTitle>
               <div className="flex items-center gap-2">
-                <Label htmlFor="signature-mode" className="text-sm text-muted-foreground">
+                <Label htmlFor="signature-mode" className="text-xs sm:text-sm text-muted-foreground">
                   {signatureMode === "electronic" ? "Électronique" : "Manuscrite"}
                 </Label>
                 <Switch
@@ -686,49 +691,49 @@ export default function DevisDetail() {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4 p-4 md:p-6 pt-0">
+          <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-4 md:p-6 pt-0">
             {signatureMode === "electronic" ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <Label>Signature du client</Label>
+                  <Label className="text-xs sm:text-sm">Signature du client</Label>
                   {devis.client_signature_url ? (
-                    <div className="border-2 rounded-lg p-4 mt-2">
-                      <img src={devis.client_signature_url} alt="Signature client" className="max-h-32" />
+                    <div className="border-2 rounded-lg p-2 sm:p-4 mt-2">
+                      <img src={devis.client_signature_url} alt="Signature client" className="max-h-24 sm:max-h-32 w-full object-contain" />
                     </div>
                   ) : (
                     <Button
                       type="button"
                       variant="outline"
-                      className="w-full mt-2"
+                      className="w-full mt-2 text-xs sm:text-sm"
                       onClick={() => openSignatureDialog("client")}
                     >
-                      <Pen className="h-4 w-4 mr-2" />
+                      <Pen className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                       Signer (Client)
                     </Button>
                   )}
                 </div>
                 <div>
-                  <Label>Signature de l'entreprise</Label>
+                  <Label className="text-xs sm:text-sm">Signature de l'entreprise</Label>
                   {devis.company_signature_url ? (
-                    <div className="border-2 rounded-lg p-4 mt-2">
-                      <img src={devis.company_signature_url} alt="Signature entreprise" className="max-h-32" />
+                    <div className="border-2 rounded-lg p-2 sm:p-4 mt-2">
+                      <img src={devis.company_signature_url} alt="Signature entreprise" className="max-h-24 sm:max-h-32 w-full object-contain" />
                     </div>
                   ) : (
                     <Button
                       type="button"
                       variant="outline"
-                      className="w-full mt-2"
+                      className="w-full mt-2 text-xs sm:text-sm"
                       onClick={() => openSignatureDialog("company")}
                     >
-                      <Pen className="h-4 w-4 mr-2" />
+                      <Pen className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                       Signer (Entreprise)
                     </Button>
                   )}
                 </div>
               </div>
             ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <p className="text-sm">Mode signature manuscrite activé</p>
+              <div className="text-center py-6 sm:py-8 text-muted-foreground">
+                <p className="text-xs sm:text-sm">Mode signature manuscrite activé</p>
                 <p className="text-xs mt-2">Les signatures seront ajoutées manuellement sur le document imprimé</p>
               </div>
             )}
@@ -736,15 +741,15 @@ export default function DevisDetail() {
         </Card>
 
         <div className="flex flex-col sm:flex-row gap-2 md:gap-4">
-          <Button type="submit" className="flex-1 sm:flex-none">Enregistrer</Button>
+          <Button type="submit" className="flex-1 sm:flex-none text-sm sm:text-base">Enregistrer</Button>
           {id && id !== "new" && (
-            <Button type="button" variant="outline" onClick={generatePDF} className="flex-1 sm:flex-none">
-              <FileText className="h-4 w-4 mr-2" />
+            <Button type="button" variant="outline" onClick={generatePDF} className="flex-1 sm:flex-none text-sm sm:text-base">
+              <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
               <span className="hidden sm:inline">Télécharger PDF</span>
               <span className="sm:hidden">PDF</span>
             </Button>
           )}
-          <Button type="button" variant="outline" onClick={() => navigate(-1)} className="flex-1 sm:flex-none">
+          <Button type="button" variant="outline" onClick={() => navigate(-1)} className="flex-1 sm:flex-none text-sm sm:text-base">
             Annuler
           </Button>
         </div>
@@ -752,39 +757,42 @@ export default function DevisDetail() {
 
       {/* Signature Dialog */}
       <Dialog open={signatureDialogOpen} onOpenChange={setSignatureDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-[95vw] sm:max-w-2xl w-full">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-base sm:text-lg">
               Signature {signatureType === "client" ? "du client" : "de l'entreprise"}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="bg-white rounded-lg">
+          <div className="space-y-3 sm:space-y-4">
+            <div className="bg-white rounded-lg border">
               <SignatureCanvas
                 ref={signaturePadRef}
                 canvasProps={{
-                  className: "signature-canvas w-full h-64",
-                  style: { fontFamily: "'Dancing Script', 'Kalam', 'Caveat', cursive" }
+                  className: "signature-canvas w-full h-48 sm:h-64",
+                  style: { 
+                    fontFamily: "'Dancing Script', 'Kalam', 'Caveat', cursive",
+                    touchAction: "none"
+                  }
                 }}
               />
             </div>
-            <p className="signature-legal-text">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Je certifie que cette signature électronique a la même valeur juridique qu'une signature manuscrite<br/>
               Date: {new Date().toLocaleDateString('fr-FR')} {new Date().toLocaleTimeString('fr-FR')}
             </p>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => signaturePadRef.current?.clear()}
-                className="flex-1"
+                className="flex-1 text-sm sm:text-base"
               >
                 Effacer
               </Button>
               <Button
                 type="button"
                 onClick={handleSaveSignature}
-                className="flex-1"
+                className="flex-1 text-sm sm:text-base"
               >
                 Enregistrer la signature
               </Button>

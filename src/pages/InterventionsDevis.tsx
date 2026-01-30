@@ -275,17 +275,17 @@ export default function InterventionsDevis() {
   const showDevis = typeFilter === "tous" || typeFilter === "devis";
 
   return (
-    <div className="space-y-4 md:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 md:gap-4">
-        <h1 className="text-2xl md:text-3xl font-bold">Interventions & Devis</h1>
-        <div className="flex flex-wrap gap-2">
-          <Button onClick={() => navigate("/interventions/new")} className="flex-1 sm:flex-none">
-            <Plus className="h-4 w-4 mr-2" />
+    <div className="space-y-3 md:space-y-6 px-2 sm:px-0">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 md:gap-4">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Interventions & Devis</h1>
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+          <Button onClick={() => navigate("/interventions/new")} className="flex-1 sm:flex-none text-sm sm:text-base">
+            <Plus className="h-4 w-4 mr-1 sm:mr-2" />
             <span className="hidden sm:inline">Nouvelle intervention</span>
             <span className="sm:hidden">Intervention</span>
           </Button>
-          <Button onClick={() => navigate("/devis/new")} className="flex-1 sm:flex-none">
-            <Plus className="h-4 w-4 mr-2" />
+          <Button onClick={() => navigate("/devis/new")} className="flex-1 sm:flex-none text-sm sm:text-base">
+            <Plus className="h-4 w-4 mr-1 sm:mr-2" />
             <span className="hidden sm:inline">Nouveau devis</span>
             <span className="sm:hidden">Devis</span>
           </Button>
@@ -400,41 +400,41 @@ export default function InterventionsDevis() {
         )}
       </div>
 
-      <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-2 sm:gap-3 md:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {showInterventions &&
           filteredInterventions.map((intervention) => (
             <Card key={intervention.id} className="card-hover border-l-4 border-l-primary">
-              <CardHeader className="p-4 md:p-6">
+              <CardHeader className="p-3 sm:p-4 md:p-6">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
-                    <CardTitle className="text-base md:text-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent truncate">
+                    <CardTitle className="text-sm sm:text-base md:text-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent truncate">
                       {intervention.titre}
                     </CardTitle>
-                    <Badge className="mt-2" variant={interventionStatusConfig[intervention.statut as keyof typeof interventionStatusConfig]?.variant || "secondary"}>
+                    <Badge className="mt-1 sm:mt-2 text-xs" variant={interventionStatusConfig[intervention.statut as keyof typeof interventionStatusConfig]?.variant || "secondary"}>
                       {interventionStatusConfig[intervention.statut as keyof typeof interventionStatusConfig]?.label || "Non défini"}
                     </Badge>
                   </div>
                   <div className="flex gap-1 flex-shrink-0">
                     {/* Bouton Visualiser (œil) - pour toutes les interventions */}
-                    <Button variant="ghost" size="icon" onClick={() => navigate(`/interventions/preview/${intervention.id}`)} className="hover:bg-primary/10 hover:text-primary h-8 w-8" title="Visualiser">
-                      <Eye className="h-3.5 w-3.5" />
+                    <Button variant="ghost" size="icon" onClick={() => navigate(`/interventions/preview/${intervention.id}`)} className="hover:bg-primary/10 hover:text-primary h-7 w-7 sm:h-8 sm:w-8" title="Visualiser">
+                      <Eye className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                     </Button>
                     {/* Bouton Modifier */}
-                    <Button variant="ghost" size="icon" onClick={() => navigate(`/interventions/${intervention.id}`)} className="hover:bg-primary/10 hover:text-primary h-8 w-8" title="Modifier">
-                      <Edit className="h-3.5 w-3.5" />
+                    <Button variant="ghost" size="icon" onClick={() => navigate(`/interventions/${intervention.id}`)} className="hover:bg-primary/10 hover:text-primary h-7 w-7 sm:h-8 sm:w-8" title="Modifier">
+                      <Edit className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                     </Button>
                     {/* Bouton Télécharger PDF */}
-                    <Button variant="ghost" size="icon" onClick={() => handleDownloadInterventionPDF(intervention.id)} className="hover:bg-accent/10 hover:text-accent h-8 w-8" title="Télécharger PDF">
-                      <Download className="h-3.5 w-3.5" />
+                    <Button variant="ghost" size="icon" onClick={() => handleDownloadInterventionPDF(intervention.id)} className="hover:bg-accent/10 hover:text-accent h-7 w-7 sm:h-8 sm:w-8" title="Télécharger PDF">
+                      <Download className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                     </Button>
                     {/* Bouton Supprimer */}
-                    <Button variant="ghost" size="icon" onClick={() => handleDeleteIntervention(intervention.id)} className="hover:bg-destructive/10 hover:text-destructive h-8 w-8" title="Supprimer">
-                      <Trash2 className="h-3.5 w-3.5" />
+                    <Button variant="ghost" size="icon" onClick={() => handleDeleteIntervention(intervention.id)} className="hover:bg-destructive/10 hover:text-destructive h-7 w-7 sm:h-8 sm:w-8" title="Supprimer">
+                      <Trash2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                     </Button>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-2 p-4 md:p-6 pt-0">
+              <CardContent className="space-y-2 p-3 sm:p-4 md:p-6 pt-0">
                 {intervention.description && (
                   <p className="text-xs md:text-sm text-muted-foreground line-clamp-2">{intervention.description}</p>
                 )}
@@ -458,13 +458,13 @@ export default function InterventionsDevis() {
         {showDevis &&
           filteredDevis.map((d) => (
             <Card key={d.id} className="card-hover border-l-4 border-l-secondary">
-              <CardHeader className="p-4 md:p-6">
+              <CardHeader className="p-3 sm:p-4 md:p-6">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
-                    <CardTitle className="text-base md:text-lg bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent truncate">
+                    <CardTitle className="text-sm sm:text-base md:text-lg bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent truncate">
                       {d.reference}
                     </CardTitle>
-                    <div className="flex gap-2 mt-2 flex-wrap">
+                    <div className="flex gap-2 mt-1 sm:mt-2 flex-wrap">
                       <Badge variant={devisStatusConfig[d.statut as keyof typeof devisStatusConfig]?.variant} className="text-xs">
                         {devisStatusConfig[d.statut as keyof typeof devisStatusConfig]?.label}
                       </Badge>
@@ -472,22 +472,22 @@ export default function InterventionsDevis() {
                     </div>
                   </div>
                   <div className="flex gap-1 flex-wrap justify-end flex-shrink-0">
-                    <Button variant="ghost" size="icon" onClick={() => navigate(`/devis/preview/${d.id}`)} className="hover:bg-secondary/10 hover:text-secondary h-8 w-8" title="Visualiser">
-                      <Eye className="h-3.5 w-3.5" />
+                    <Button variant="ghost" size="icon" onClick={() => navigate(`/devis/preview/${d.id}`)} className="hover:bg-secondary/10 hover:text-secondary h-7 w-7 sm:h-8 sm:w-8" title="Visualiser">
+                      <Eye className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => navigate(`/devis/${d.id}`)} className="hover:bg-primary/10 hover:text-primary h-8 w-8" title="Modifier">
-                      <FileText className="h-3.5 w-3.5" />
+                    <Button variant="ghost" size="icon" onClick={() => navigate(`/devis/${d.id}`)} className="hover:bg-primary/10 hover:text-primary h-7 w-7 sm:h-8 sm:w-8" title="Modifier">
+                      <FileText className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDownloadDevisPDF(d.id)} className="hover:bg-accent/10 hover:text-accent h-8 w-8" title="Télécharger PDF">
-                      <Download className="h-3.5 w-3.5" />
+                    <Button variant="ghost" size="icon" onClick={() => handleDownloadDevisPDF(d.id)} className="hover:bg-accent/10 hover:text-accent h-7 w-7 sm:h-8 sm:w-8" title="Télécharger PDF">
+                      <Download className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDeleteDevis(d.id)} className="hover:bg-destructive/10 hover:text-destructive h-8 w-8" title="Supprimer">
-                      <Trash2 className="h-3.5 w-3.5" />
+                    <Button variant="ghost" size="icon" onClick={() => handleDeleteDevis(d.id)} className="hover:bg-destructive/10 hover:text-destructive h-7 w-7 sm:h-8 sm:w-8" title="Supprimer">
+                      <Trash2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                     </Button>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-2 p-4 md:p-6 pt-0">
+              <CardContent className="space-y-2 p-3 sm:p-4 md:p-6 pt-0">
                 {d.clients && (
                   <div className="flex items-center gap-2 text-xs md:text-sm font-medium">
                     <FileText className="h-3.5 w-3.5 md:h-4 md:w-4 text-secondary flex-shrink-0" />
