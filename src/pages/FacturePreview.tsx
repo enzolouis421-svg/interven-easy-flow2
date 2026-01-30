@@ -80,6 +80,54 @@ export default function FacturePreview() {
     return joursRetard > 0 && !facture.relance_envoyee;
   };
 
+  // Générer un message de relance adapté selon les jours de retard
+  const generateRelanceMessage = (
+    joursRetard: number,
+    prenom: string,
+    reference: string,
+    totalTTC: string,
+    nomEntreprise: string,
+    emailEntreprise: string,
+    telephoneEntreprise: string
+  ): string => {
+    let message = `Bonjour ${prenom},\n\n`;
+    
+    // Relance douce (1-7 jours) - Message amical
+    if (joursRetard <= 7) {
+      message += `Nous vous rappelons que votre facture ${reference} d'un montant de ${totalTTC} € est en retard de ${joursRetard} jour${joursRetard > 1 ? "s" : ""}.\n\n`;
+      message += `Il s'agit probablement d'un simple oubli. Nous vous serions reconnaissants de bien vouloir procéder au règlement dans les plus brefs délais.\n\n`;
+      message += `N'hésitez pas à nous contacter si vous rencontrez des difficultés ou si vous souhaitez mettre en place un échéancier.\n\n`;
+    }
+    // Relance standard (8-15 jours) - Message plus ferme
+    else if (joursRetard <= 15) {
+      message += `Votre facture ${reference} d'un montant de ${totalTTC} € est en retard de ${joursRetard} jour${joursRetard > 1 ? "s" : ""}.\n\n`;
+      message += `Nous vous prions de bien vouloir régulariser cette situation dans les plus brefs délais.\n\n`;
+      message += `Si vous avez déjà effectué le paiement, merci de nous en informer. Dans le cas contraire, nous vous remercions de procéder au règlement sans délai.\n\n`;
+    }
+    // Relance urgente (16-30 jours) - Message pressant
+    else if (joursRetard <= 30) {
+      message += `Votre facture ${reference} d'un montant de ${totalTTC} € est en retard de ${joursRetard} jour${joursRetard > 1 ? "s" : ""}.\n\n`;
+      message += `Malgré nos précédents rappels, nous n'avons pas reçu le règlement de cette facture.\n\n`;
+      message += `Nous vous demandons de procéder au règlement immédiatement. À défaut de paiement dans les 7 jours, nous nous verrons contraints d'engager une procédure de recouvrement.\n\n`;
+      message += `Nous restons à votre disposition pour trouver une solution amiable.\n\n`;
+    }
+    // Relance très urgente (31+ jours) - Message très ferme
+    else {
+      message += `Votre facture ${reference} d'un montant de ${totalTTC} € est en retard de ${joursRetard} jour${joursRetard > 1 ? "s" : ""}.\n\n`;
+      message += `Malgré nos multiples relances, le règlement de cette facture n'a toujours pas été effectué.\n\n`;
+      message += `Cette situation ne peut plus durer. Nous vous demandons de régulariser cette facture dans un délai de 5 jours ouvrés.\n\n`;
+      message += `Passé ce délai, nous nous verrons dans l'obligation de confier le recouvrement de cette créance à un organisme spécialisé, ce qui entraînera des frais supplémentaires à votre charge.\n\n`;
+      message += `Nous espérons que vous comprendrez la nécessité de régulariser cette situation rapidement.\n\n`;
+    }
+    
+    message += `Cordialement,\n`;
+    message += `${nomEntreprise}\n`;
+    message += `${emailEntreprise}\n`;
+    message += `${telephoneEntreprise}`;
+    
+    return message;
+  };
+
   const handleDownloadPDF = async () => {
     try {
       toast({
@@ -213,15 +261,18 @@ export default function FacturePreview() {
         `Relance facture ${facture.reference} (${joursRetard} jour${joursRetard > 1 ? "s" : ""} de retard)`
       );
 
-      const body = encodeURIComponent(
-        `Bonjour ${prenom},\n\n` +
-        `Votre facture ${facture.reference} d'un montant de ${totalTTC} € est en retard de ${joursRetard} jour${joursRetard > 1 ? "s" : ""}.\n\n` +
-        `Merci de procéder au règlement dans les plus brefs délais.\n\n` +
-        `Cordialement,\n` +
-        `${nomEntreprise}\n` +
-        `${emailEntreprise}\n` +
-        `${telephoneEntreprise}`
+      // Générer le message adapté selon les jours de retard
+      const messageBody = generateRelanceMessage(
+        joursRetard,
+        prenom,
+        facture.reference,
+        totalTTC,
+        nomEntreprise,
+        emailEntreprise,
+        telephoneEntreprise
       );
+
+      const body = encodeURIComponent(messageBody);
 
       // Ouvrir le client mail
       window.location.href = `mailto:${client.email}?subject=${subject}&body=${body}`;
