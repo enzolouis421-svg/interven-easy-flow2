@@ -40,6 +40,46 @@ export default function FactureDetail() {
   const [lignes, setLignes] = useState<LignePrestation[]>([
     { description: "", quantite: 1, prix_unitaire: 0, tva: 20 }
   ]);
+  const [isEcheanceAuto, setIsEcheanceAuto] = useState(false);
+
+  // Fonction pour extraire le nombre de jours depuis les conditions de paiement
+  const extractDaysFromPaymentConditions = (conditions: string): number | null => {
+    if (!conditions) return null;
+    
+    const conditionsLower = conditions.toLowerCase();
+    
+    // Patterns courants à reconnaître
+    const patterns = [
+      /(\d+)\s*jour/i,           // "30 jours", "30 jour"
+      /(\d+)\s*j\b/i,            // "30 j"
+      /net\s*(\d+)/i,            // "net 30", "NET 45"
+      /sous\s*(\d+)\s*jour/i,    // "sous 30 jours"
+      /(\d+)\s*jours?\s*net/i,   // "30 jours net"
+      /(\d+)\s*jours?\s*fin/i,   // "30 jours fin de mois"
+    ];
+    
+    for (const pattern of patterns) {
+      const match = conditions.match(pattern);
+      if (match && match[1]) {
+        const days = parseInt(match[1], 10);
+        if (days > 0 && days <= 365) {
+          return days;
+        }
+      }
+    }
+    
+    // Valeurs par défaut selon le texte
+    if (conditionsLower.includes('réception') || conditionsLower.includes('reception')) {
+      return 0; // Paiement à réception
+    }
+    
+    if (conditionsLower.includes('comptant') || conditionsLower.includes('immédiat') || conditionsLower.includes('immediat')) {
+      return 0; // Paiement comptant
+    }
+    
+    // Valeur par défaut si rien n'est trouvé
+    return null;
+  };
 
   useEffect(() => {
     loadClients();
@@ -49,6 +89,39 @@ export default function FactureDetail() {
       loadFromDevis();
     }
   }, [id, devisId]);
+
+  // Calcul automatique de la date d'échéance
+  useEffect(() => {
+    // Ne calculer que si on crée une nouvelle facture (pas d'id) ou si la date d'échéance est vide
+    if (id && dateEcheance && !isEcheanceAuto) {
+      // Si on modifie une facture existante qui a déjà une date d'échéance non auto, ne pas la modifier
+      return;
+    }
+    
+    if (!dateEmission) return;
+    
+    const days = extractDaysFromPaymentConditions(conditionsPaiement);
+    
+    if (days !== null) {
+      const emissionDate = new Date(dateEmission);
+      emissionDate.setDate(emissionDate.getDate() + days);
+      const newEcheance = emissionDate.toISOString().split('T')[0];
+      if (dateEcheance !== newEcheance) {
+        setDateEcheance(newEcheance);
+        setIsEcheanceAuto(true);
+      }
+    } else {
+      // Si on ne peut pas extraire les jours, utiliser 30 jours par défaut
+      const emissionDate = new Date(dateEmission);
+      emissionDate.setDate(emissionDate.getDate() + 30);
+      const newEcheance = emissionDate.toISOString().split('T')[0];
+      if (dateEcheance !== newEcheance) {
+        setDateEcheance(newEcheance);
+        setIsEcheanceAuto(true);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateEmission, conditionsPaiement, id]);
 
   const loadClients = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -88,6 +161,8 @@ export default function FactureDetail() {
             }
           })()
         : ((data.lignes_prestation as unknown) as LignePrestation[] || []));
+      // Si la facture existe déjà, la date d'échéance n'est pas auto
+      setIsEcheanceAuto(false);
     }
   };
 
@@ -100,7 +175,8 @@ export default function FactureDetail() {
 
     if (!error && data) {
       setClientId(data.client_id);
-      setConditionsPaiement(data.conditions_paiement || "Paiement à réception de facture");
+      const conditions = data.conditions_paiement || "Paiement à réception de facture";
+      setConditionsPaiement(conditions);
       setNotes(data.notes || "");
       setLignes(typeof data.lignes_prestation === 'string'
         ? (() => {
@@ -117,6 +193,16 @@ export default function FactureDetail() {
         .from("factures")
         .select("id", { count: "exact", head: true });
       setReference(`FAC-${String((count.count || 0) + 1).padStart(5, '0')}`);
+      
+      // Calculer automatiquement la date d'échéance
+      const emissionDate = new Date();
+      const days = extractDaysFromPaymentConditions(conditions);
+      const calculatedDays = days !== null ? days : 30; // 30 jours par défaut
+      
+      const echeanceDate = new Date(emissionDate);
+      echeanceDate.setDate(echeanceDate.getDate() + calculatedDays);
+      setDateEcheance(echeanceDate.toISOString().split('T')[0]);
+      setIsEcheanceAuto(true);
     }
   };
 
@@ -295,13 +381,28 @@ export default function FactureDetail() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs sm:text-sm">Date d'échéance</Label>
+                <div className="flex items-center gap-2">
+                  <Label className="text-xs sm:text-sm">Date d'échéance</Label>
+                  {isEcheanceAuto && extractDaysFromPaymentConditions(conditionsPaiement) !== null && (
+                    <span className="text-xs text-muted-foreground">
+                      (Auto)
+                    </span>
+                  )}
+                </div>
                 <Input
                   type="date"
                   value={dateEcheance}
-                  onChange={(e) => setDateEcheance(e.target.value)}
+                  onChange={(e) => {
+                    setDateEcheance(e.target.value);
+                    setIsEcheanceAuto(false); // L'utilisateur modifie manuellement
+                  }}
                   className="text-sm"
                 />
+                {isEcheanceAuto && extractDaysFromPaymentConditions(conditionsPaiement) !== null && (
+                  <p className="text-xs text-muted-foreground">
+                    Basée sur : {dateEmission} + {extractDaysFromPaymentConditions(conditionsPaiement)} jour{extractDaysFromPaymentConditions(conditionsPaiement)! > 1 ? "s" : ""}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label className="text-xs sm:text-sm">Statut</Label>
@@ -414,10 +515,23 @@ export default function FactureDetail() {
               <Label className="text-xs sm:text-sm">Conditions de paiement</Label>
               <Input
                 value={conditionsPaiement}
-                onChange={(e) => setConditionsPaiement(e.target.value)}
-                placeholder="Paiement à réception de facture"
+                onChange={(e) => {
+                  setConditionsPaiement(e.target.value);
+                  // Réactiver le calcul auto si l'utilisateur change les conditions
+                  if (!id || !dateEcheance) {
+                    setIsEcheanceAuto(true);
+                  }
+                }}
+                placeholder="Paiement à réception de facture, 30 jours, Net 45..."
                 className="text-sm"
               />
+              {extractDaysFromPaymentConditions(conditionsPaiement) !== null && (
+                <p className="text-xs text-muted-foreground">
+                  {extractDaysFromPaymentConditions(conditionsPaiement) === 0 
+                    ? "Paiement immédiat détecté" 
+                    : `${extractDaysFromPaymentConditions(conditionsPaiement)} jour${extractDaysFromPaymentConditions(conditionsPaiement)! > 1 ? "s" : ""} détecté${extractDaysFromPaymentConditions(conditionsPaiement)! > 1 ? "s" : ""}`}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label className="text-xs sm:text-sm">Notes</Label>
