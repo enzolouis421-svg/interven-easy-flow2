@@ -37,66 +37,66 @@ serve(async (req) => {
 
       if (error) throw error;
 
-      // Vérifier que signature_url est bien présent et accessible
-      if (data && !data.signature_url) {
-        console.warn('Aucune signature_url trouvée pour l\'intervention:', id);
-      } else if (data && data.signature_url) {
-        console.log('Signature URL trouvée:', data.signature_url);
-        
-        // Vérifier que l'URL est accessible et convertir en base64 si nécessaire
+      // Fonction helper pour convertir une image en base64
+      const convertImageToBase64 = async (url: string): Promise<string | null> => {
         try {
-          const testResponse = await fetch(data.signature_url);
-          if (!testResponse.ok) {
-            console.warn('Signature URL non accessible:', data.signature_url, 'Status:', testResponse.status);
-          } else {
-            console.log('Signature URL accessible:', data.signature_url);
-            // Essayer de convertir en base64 pour éviter les problèmes CORS
-            try {
-              const blob = await testResponse.blob();
-              const arrayBuffer = await blob.arrayBuffer();
-              // Utiliser btoa pour Deno (compatible avec les Edge Functions)
-              const uint8Array = new Uint8Array(arrayBuffer);
-              const binary = Array.from(uint8Array, byte => String.fromCharCode(byte)).join('');
-              const base64 = btoa(binary);
-              const mimeType = blob.type || 'image/png';
-              data.signature_url = `data:${mimeType};base64,${base64}`;
-              console.log('Signature convertie en base64');
-            } catch (convertError) {
-              console.warn('Impossible de convertir la signature en base64:', convertError);
-              // Garder l'URL originale
-            }
+          const response = await fetch(url);
+          if (!response.ok) {
+            console.warn('Image non accessible:', url, 'Status:', response.status);
+            return null;
           }
+          
+          const arrayBuffer = await response.arrayBuffer();
+          const uint8Array = new Uint8Array(arrayBuffer);
+          
+          // Convertir en base64 avec une méthode compatible Deno
+          let binary = '';
+          const chunkSize = 8192;
+          for (let i = 0; i < uint8Array.length; i += chunkSize) {
+            const chunk = uint8Array.slice(i, i + chunkSize);
+            binary += String.fromCharCode.apply(null, Array.from(chunk));
+          }
+          
+          const base64 = btoa(binary);
+          const contentType = response.headers.get('content-type') || 'image/png';
+          return `data:${contentType};base64,${base64}`;
         } catch (error) {
-          console.warn('Erreur test signature URL:', error);
+          console.warn('Erreur conversion image en base64:', url, error);
+          return null;
         }
+      };
+
+      // Convertir la signature en base64
+      if (data && data.signature_url) {
+        console.log('Traitement signature URL:', data.signature_url);
+        const base64Signature = await convertImageToBase64(data.signature_url);
+        if (base64Signature) {
+          data.signature_url = base64Signature;
+          console.log('Signature convertie en base64 avec succès');
+        } else {
+          console.warn('Signature non convertie, utilisation de l\'URL originale');
+        }
+      } else {
+        console.warn('Aucune signature_url trouvée pour l\'intervention:', id);
       }
       
-      // Faire de même pour les photos
+      // Convertir les photos en base64
       if (data && data.photos) {
         const photos = typeof data.photos === 'string' ? JSON.parse(data.photos) : (data.photos || []);
+        console.log(`Traitement de ${photos.length} photo(s)`);
         const convertedPhotos = [];
+        
         for (let i = 0; i < photos.length; i++) {
-            try {
-              const photoResponse = await fetch(photos[i]);
-              if (photoResponse.ok) {
-                const blob = await photoResponse.blob();
-                const arrayBuffer = await blob.arrayBuffer();
-                // Utiliser btoa pour Deno (compatible avec les Edge Functions)
-                const uint8Array = new Uint8Array(arrayBuffer);
-                const binary = Array.from(uint8Array, byte => String.fromCharCode(byte)).join('');
-                const base64 = btoa(binary);
-                const mimeType = blob.type || 'image/jpeg';
-                convertedPhotos.push(`data:${mimeType};base64,${base64}`);
-                console.log(`Photo ${i + 1} convertie en base64`);
-              } else {
-                console.warn('Photo non accessible:', photos[i], 'Status:', photoResponse.status);
-                convertedPhotos.push(photos[i]); // Garder l'URL originale
-              }
-            } catch (error) {
-              console.warn('Erreur conversion photo:', photos[i], error);
-              convertedPhotos.push(photos[i]); // Garder l'URL originale
-            }
+          const base64Photo = await convertImageToBase64(photos[i]);
+          if (base64Photo) {
+            convertedPhotos.push(base64Photo);
+            console.log(`Photo ${i + 1}/${photos.length} convertie en base64`);
+          } else {
+            convertedPhotos.push(photos[i]); // Garder l'URL originale en cas d'échec
+            console.warn(`Photo ${i + 1} non convertie, utilisation de l'URL originale`);
+          }
         }
+        
         data.photos = convertedPhotos;
         console.log(`${convertedPhotos.length} photo(s) traitée(s)`);
       }
@@ -264,24 +264,24 @@ function generateInterventionHTML(data: any) {
     .content-section { margin-bottom: 18px; page-break-inside: avoid; }
     .content-section h3 { font-weight: bold; font-size: 14px; margin-bottom: 6px; }
     .content-text { color: #374151; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word; font-size: 11px; }
-    .photos-grid { display: grid; gap: 10px; margin-top: 12px; }
+    .photos-grid { display: grid; gap: 12px; margin-top: 12px; width: 100%; }
     .photos-grid.photo-1 { grid-template-columns: 1fr; }
     .photos-grid.photo-2 { grid-template-columns: repeat(2, 1fr); }
     .photos-grid.photo-3 { grid-template-columns: repeat(3, 1fr); }
     .photos-grid.photo-4 { grid-template-columns: repeat(2, 1fr); }
     .photos-grid.photo-5 { grid-template-columns: repeat(3, 1fr); }
     .photos-grid.photo-6 { grid-template-columns: repeat(3, 1fr); }
-    .photos-grid.photo-7 { grid-template-columns: repeat(4, 1fr); }
+    .photos-grid.photo-7 { grid-template-columns: repeat(3, 1fr); }
     .photos-grid.photo-8 { grid-template-columns: repeat(4, 1fr); }
     .photos-grid.photo-9 { grid-template-columns: repeat(3, 1fr); }
     .photos-grid.photo-10 { grid-template-columns: repeat(4, 1fr); }
     .photos-grid.photo-many { grid-template-columns: repeat(4, 1fr); }
-    .photo-item { width: 100%; max-width: 100%; height: auto; max-height: 200px; object-fit: contain; border-radius: 6px; border: 1px solid #e5e7eb; background: #f9fafb; page-break-inside: avoid; }
+    .photo-item { width: 100%; height: auto; max-height: 180px; min-height: 120px; object-fit: cover; border-radius: 6px; border: 1px solid #e5e7eb; background: #f9fafb; page-break-inside: avoid; display: block; }
     .signature-section { margin-top: 24px; padding-top: 20px; border-top: 2px solid #e5e7eb; page-break-inside: avoid; }
     .signature-section h3 { font-weight: bold; font-size: 14px; margin-bottom: 12px; }
-    .signature-box { border: 2px solid #d1d5db; border-radius: 6px; padding: 12px; display: inline-block; background: #f9fafb; max-width: 100%; }
-    .signature-img { max-height: 120px; max-width: 100%; height: auto; display: block; margin: 0 auto; }
-    .signature-note { font-size: 9px; color: #6b7280; margin-top: 6px; }
+    .signature-box { border: 2px solid #d1d5db; border-radius: 6px; padding: 12px; display: block; background: #f9fafb; max-width: 100%; width: fit-content; margin: 0 auto; }
+    .signature-img { max-height: 150px; max-width: 100%; width: auto; height: auto; display: block; margin: 0 auto; object-fit: contain; }
+    .signature-note { font-size: 9px; color: #6b7280; margin-top: 6px; text-align: center; }
   </style>
 </head>
 <body>
@@ -359,7 +359,11 @@ function generateInterventionHTML(data: any) {
     <div class="content-section">
       <h3>Photos (${photos.length})</h3>
       <div class="photos-grid photo-${photos.length <= 10 ? photos.length : 'many'}">
-        ${photos.map((url: string, index: number) => `<img src="${safe(url)}" alt="Photo ${index + 1}" class="photo-item" crossorigin="anonymous" />`).join('')}
+        ${photos.map((url: string, index: number) => {
+          // Vérifier si c'est déjà en base64
+          const isBase64 = url.startsWith('data:');
+          return `<img src="${safe(url)}" alt="Photo ${index + 1}" class="photo-item" ${isBase64 ? '' : 'crossorigin="anonymous"'} style="width: 100%; height: auto; display: block;" />`;
+        }).join('')}
       </div>
     </div>
     ` : ''}
@@ -368,7 +372,7 @@ function generateInterventionHTML(data: any) {
     <div class="signature-section">
       <h3>Signature client</h3>
       <div class="signature-box">
-        <img src="${safe(data.signature_url)}" alt="Signature client" class="signature-img" crossorigin="anonymous" style="max-width: 100%; height: auto;" />
+        <img src="${safe(data.signature_url)}" alt="Signature client" class="signature-img" style="display: block; margin: 0 auto;" />
       </div>
       <div class="signature-note">Signature électronique conforme au règlement eIDAS</div>
     </div>

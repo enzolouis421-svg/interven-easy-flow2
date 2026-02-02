@@ -24,67 +24,90 @@ export const generatePDFFromHTML = async (htmlContent: string, filename: string)
     
     document.body.appendChild(tempDiv);
 
-    // Attendre que toutes les images soient chargées avec retry
+    // Attendre que toutes les images soient chargées
     const images = tempDiv.querySelectorAll('img');
     const imagePromises = Array.from(images).map((img, index) => {
       return new Promise<void>((resolve) => {
-        const loadImage = (retryCount = 0) => {
+        // Si l'image est déjà en base64, elle devrait se charger immédiatement
+        const isBase64 = img.src.startsWith('data:');
+        
+        if (isBase64) {
+          // Pour les images base64, vérifier qu'elles sont chargées
           if (img.complete && img.naturalHeight !== 0) {
             resolve();
             return;
           }
-
-          const maxRetries = 3;
-          const timeout = 10000; // 10 secondes par tentative
-
-          const timeoutId = setTimeout(() => {
-            if (retryCount < maxRetries) {
-              console.warn(`Timeout image ${index + 1}, retry ${retryCount + 1}/${maxRetries}:`, img.src);
-              // Réessayer en forçant le rechargement
-              img.src = img.src + (img.src.includes('?') ? '&' : '?') + `t=${Date.now()}`;
-              loadImage(retryCount + 1);
-            } else {
-              console.warn('Timeout final de chargement d\'image:', img.src);
-              resolve(); // Continuer même si l'image échoue
-            }
-          }, timeout);
-
-          img.onload = () => {
-            clearTimeout(timeoutId);
-            resolve();
-          };
-
+          
+          img.onload = () => resolve();
           img.onerror = () => {
-            clearTimeout(timeoutId);
-            if (retryCount < maxRetries) {
-              console.warn(`Erreur image ${index + 1}, retry ${retryCount + 1}/${maxRetries}:`, img.src);
-              // Réessayer en forçant le rechargement
-              setTimeout(() => {
+            console.warn('Erreur chargement image base64:', index + 1);
+            resolve(); // Continuer même si l'image échoue
+          };
+          
+          // Timeout plus court pour base64 (devrait être instantané)
+          setTimeout(() => {
+            if (img.complete) {
+              resolve();
+            } else {
+              console.warn('Timeout image base64:', index + 1);
+              resolve();
+            }
+          }, 2000);
+        } else {
+          // Pour les URLs externes, utiliser retry
+          const loadImage = (retryCount = 0) => {
+            if (img.complete && img.naturalHeight !== 0) {
+              resolve();
+              return;
+            }
+
+            const maxRetries = 2;
+            const timeout = 8000;
+
+            const timeoutId = setTimeout(() => {
+              if (retryCount < maxRetries) {
+                console.warn(`Timeout image ${index + 1}, retry ${retryCount + 1}/${maxRetries}`);
                 img.src = img.src + (img.src.includes('?') ? '&' : '?') + `t=${Date.now()}`;
                 loadImage(retryCount + 1);
-              }, 1000);
-            } else {
-              console.warn('Erreur finale de chargement d\'image:', img.src);
-              resolve(); // Continuer même si l'image échoue
+              } else {
+                console.warn('Timeout final image:', index + 1);
+                resolve();
+              }
+            }, timeout);
+
+            img.onload = () => {
+              clearTimeout(timeoutId);
+              resolve();
+            };
+
+            img.onerror = () => {
+              clearTimeout(timeoutId);
+              if (retryCount < maxRetries) {
+                setTimeout(() => {
+                  img.src = img.src + (img.src.includes('?') ? '&' : '?') + `t=${Date.now()}`;
+                  loadImage(retryCount + 1);
+                }, 1000);
+              } else {
+                console.warn('Erreur finale image:', index + 1);
+                resolve();
+              }
+            };
+
+            if (!img.complete) {
+              img.loading = 'eager';
+              img.style.display = 'block';
             }
           };
 
-          // Forcer le chargement si l'image n'est pas déjà en cours
-          if (!img.complete) {
-            img.loading = 'eager';
-            // S'assurer que l'image est visible pour le chargement
-            img.style.display = 'block';
-          }
-        };
-
-        loadImage();
+          loadImage();
+        }
       });
     });
 
     await Promise.all(imagePromises);
 
     // Attendre un peu pour s'assurer que tout est rendu
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     // Convertir en canvas
     const canvas = await html2canvas(tempDiv, {
