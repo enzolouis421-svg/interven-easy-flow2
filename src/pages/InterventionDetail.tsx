@@ -307,8 +307,19 @@ export default function InterventionDetail() {
       return;
     }
 
-    // Save signature if present
-    let signatureUrl = formData.signature_url; // Conserver la signature existante par défaut
+    // Vérifier que client_id n'est pas vide
+    if (!formData.client_id || formData.client_id.trim() === '') {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Veuillez sélectionner un client",
+      });
+      setLoading(false);
+      return;
+    }
+
+    // Gestion de la signature
+    let signatureUrl: string | null = formData.signature_url || null;
 
     if (signatureRef.current) {
       if (!signatureRef.current.isEmpty()) {
@@ -317,27 +328,29 @@ export default function InterventionDetail() {
         if (url) {
           signatureUrl = url;
         } else {
-          // Si la nouvelle signature n'a pas pu être sauvegardée, garder l'ancienne
-          console.warn("Nouvelle signature non sauvegardée, conservation de l'ancienne");
-          // Ne pas perdre la signature existante
+          // Si la nouvelle signature n'a pas pu être sauvegardée
+          console.warn("Nouvelle signature non sauvegardée");
+          // Si on était en train de créer une nouvelle signature, on continue sans
           if (!formData.signature_url) {
-            const shouldContinue = window.confirm(
-              "La signature n'a pas pu être sauvegardée. Voulez-vous continuer sans la signature ?"
-            );
-            if (!shouldContinue) {
-              setLoading(false);
-              return;
-            }
+            signatureUrl = null;
           }
+          // Sinon, on garde l'ancienne signature
+        }
+      } else {
+        // Canvas vide - si l'utilisateur a effacé la signature, on la supprime
+        if (formData.signature_url) {
+          // L'utilisateur a effacé une signature existante - on la supprime
+          signatureUrl = null;
+        } else {
+          // Pas de signature au départ, canvas toujours vide
+          signatureUrl = null;
         }
       }
-      // Si le canvas est vide mais qu'il y a une signature_url, on la garde
-      // (pas besoin de faire quoi que ce soit, signatureUrl = formData.signature_url)
     }
 
     const dataToSave = {
       ...formData,
-      signature_url: signatureUrl,
+      signature_url: signatureUrl || null, // S'assurer que c'est null et pas une chaîne vide
       user_id: user.id,
     };
 
@@ -363,10 +376,11 @@ export default function InterventionDetail() {
     }
 
     if (error) {
+      console.error("Erreur lors de la sauvegarde:", error);
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: error.message,
+        description: error.message || "Une erreur est survenue lors de l'enregistrement",
       });
       setLoading(false);
     } else {
@@ -374,7 +388,7 @@ export default function InterventionDetail() {
         title: "Succès",
         description: "Intervention enregistrée",
       });
-      // Rediriger vers la page des interventions (route corrigée)
+      // Rediriger vers la page des interventions
       navigate("/interventions-devis");
     }
     setLoading(false);
@@ -697,7 +711,11 @@ export default function InterventionDetail() {
                   size="sm"
                   onClick={() => {
                     signatureRef.current?.clear();
-                    // Ne pas effacer formData.signature_url ici, seulement le canvas
+                    // Mettre à jour formData pour indiquer que la signature a été effacée
+                    setFormData(prev => ({
+                      ...prev,
+                      signature_url: ""
+                    }));
                   }}
                   className="mt-2 w-full sm:w-auto"
                 >
