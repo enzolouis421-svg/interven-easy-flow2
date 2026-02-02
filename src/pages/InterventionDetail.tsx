@@ -59,6 +59,46 @@ export default function InterventionDetail() {
     }
   }, [id]);
 
+  // Charger la signature existante dans le canvas
+  useEffect(() => {
+    if (id && id !== "new" && formData.signature_url) {
+      // Attendre que le canvas soit monté
+      const timer = setTimeout(() => {
+        if (signatureRef.current) {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          
+          img.onload = () => {
+            const canvas = signatureRef.current?.getCanvas();
+            if (canvas && img.complete) {
+              const ctx = canvas.getContext('2d');
+              if (ctx) {
+                // Effacer le canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                // Dessiner l'image de signature
+                const scale = Math.min(
+                  canvas.width / img.width,
+                  canvas.height / img.height
+                );
+                const x = (canvas.width - img.width * scale) / 2;
+                const y = (canvas.height - img.height * scale) / 2;
+                ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+              }
+            }
+          };
+          
+          img.onerror = (error) => {
+            console.warn('Impossible de charger la signature existante:', formData.signature_url, error);
+          };
+          
+          img.src = formData.signature_url;
+        }
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [id, formData.signature_url]);
+
   const loadClients = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -268,21 +308,31 @@ export default function InterventionDetail() {
     }
 
     // Save signature if present
-    let signatureUrl = formData.signature_url;
-    if (signatureRef.current && !signatureRef.current.isEmpty()) {
-      const url = await saveSignature();
-      if (url) {
-        signatureUrl = url;
-      } else {
-        // Si la signature n'a pas pu être sauvegardée, demander confirmation
-        const shouldContinue = window.confirm(
-          "La signature n'a pas pu être sauvegardée. Voulez-vous continuer sans la signature ?"
-        );
-        if (!shouldContinue) {
-          setLoading(false);
-          return;
+    let signatureUrl = formData.signature_url; // Conserver la signature existante par défaut
+
+    if (signatureRef.current) {
+      if (!signatureRef.current.isEmpty()) {
+        // Nouvelle signature dessinée - la sauvegarder
+        const url = await saveSignature();
+        if (url) {
+          signatureUrl = url;
+        } else {
+          // Si la nouvelle signature n'a pas pu être sauvegardée, garder l'ancienne
+          console.warn("Nouvelle signature non sauvegardée, conservation de l'ancienne");
+          // Ne pas perdre la signature existante
+          if (!formData.signature_url) {
+            const shouldContinue = window.confirm(
+              "La signature n'a pas pu être sauvegardée. Voulez-vous continuer sans la signature ?"
+            );
+            if (!shouldContinue) {
+              setLoading(false);
+              return;
+            }
+          }
         }
       }
+      // Si le canvas est vide mais qu'il y a une signature_url, on la garde
+      // (pas besoin de faire quoi que ce soit, signatureUrl = formData.signature_url)
     }
 
     const dataToSave = {
@@ -624,6 +674,20 @@ export default function InterventionDetail() {
                     }
                   }}
                 />
+                {formData.signature_url && (
+                  <div className="mt-2 p-2 bg-white rounded border">
+                    <p className="text-xs text-muted-foreground mb-1">Signature actuelle :</p>
+                    <img 
+                      src={formData.signature_url} 
+                      alt="Signature actuelle" 
+                      className="max-h-20 border rounded"
+                      onError={(e) => {
+                        console.error('Erreur chargement signature:', formData.signature_url);
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                )}
                 <p className="text-xs text-muted-foreground mt-2">
                   Signature électronique à valeur légale - Date: {new Date().toLocaleDateString('fr-FR')} {new Date().toLocaleTimeString('fr-FR')}
                 </p>
@@ -631,7 +695,10 @@ export default function InterventionDetail() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => signatureRef.current?.clear()}
+                  onClick={() => {
+                    signatureRef.current?.clear();
+                    // Ne pas effacer formData.signature_url ici, seulement le canvas
+                  }}
                   className="mt-2 w-full sm:w-auto"
                 >
                   Effacer

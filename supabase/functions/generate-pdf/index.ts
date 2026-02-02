@@ -42,6 +42,17 @@ serve(async (req) => {
         console.warn('Aucune signature_url trouvée pour l\'intervention:', id);
       } else if (data && data.signature_url) {
         console.log('Signature URL trouvée:', data.signature_url);
+        // Vérifier que l'URL est accessible
+        try {
+          const testResponse = await fetch(data.signature_url, { method: 'HEAD' });
+          if (!testResponse.ok) {
+            console.warn('Signature URL non accessible:', data.signature_url, 'Status:', testResponse.status);
+          } else {
+            console.log('Signature URL accessible:', data.signature_url);
+          }
+        } catch (error) {
+          console.warn('Erreur test signature URL:', error);
+        }
       }
 
       // Récupérer les paramètres entreprise
