@@ -319,38 +319,52 @@ export default function InterventionDetail() {
     }
 
     // Gestion de la signature
-    let signatureUrl: string | null = formData.signature_url || null;
+    let signatureUrl: string | null = null;
+    
+    // Normaliser formData.signature_url (convertir chaîne vide en null)
+    const currentSignatureUrl = formData.signature_url && formData.signature_url.trim() !== '' 
+      ? formData.signature_url 
+      : null;
 
     if (signatureRef.current) {
       if (!signatureRef.current.isEmpty()) {
         // Nouvelle signature dessinée - la sauvegarder
         const url = await saveSignature();
-        if (url) {
+        if (url && url.trim() !== '') {
           signatureUrl = url;
         } else {
           // Si la nouvelle signature n'a pas pu être sauvegardée
           console.warn("Nouvelle signature non sauvegardée");
           // Si on était en train de créer une nouvelle signature, on continue sans
-          if (!formData.signature_url) {
+          if (!currentSignatureUrl) {
             signatureUrl = null;
+          } else {
+            // Garder l'ancienne signature
+            signatureUrl = currentSignatureUrl;
           }
-          // Sinon, on garde l'ancienne signature
         }
       } else {
         // Canvas vide - si l'utilisateur a effacé la signature, on la supprime
-        if (formData.signature_url) {
-          // L'utilisateur a effacé une signature existante - on la supprime
-          signatureUrl = null;
-        } else {
-          // Pas de signature au départ, canvas toujours vide
-          signatureUrl = null;
-        }
+        // Si formData.signature_url était vide (""), on a déjà mis signatureUrl à null
+        signatureUrl = null;
       }
+    } else {
+      // Pas de canvas, garder la signature actuelle si elle existe
+      signatureUrl = currentSignatureUrl;
     }
 
-    const dataToSave = {
-      ...formData,
-      signature_url: signatureUrl || null, // S'assurer que c'est null et pas une chaîne vide
+    // Préparer les données à sauvegarder en ne gardant que les champs nécessaires
+    const dataToSave: any = {
+      titre: formData.titre,
+      description: formData.description || null,
+      client_id: formData.client_id, // Déjà validé
+      adresse: formData.adresse || null,
+      materiel_utilise: formData.materiel_utilise || null,
+      commentaire_technicien: formData.commentaire_technicien || null,
+      statut: formData.statut,
+      date_intervention: formData.date_intervention || null,
+      photos: formData.photos && formData.photos.length > 0 ? formData.photos : null,
+      signature_url: signatureUrl || null, // null si vide ou effacée
       user_id: user.id,
     };
 
