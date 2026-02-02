@@ -24,14 +24,42 @@ export const generatePDFFromHTML = async (htmlContent: string, filename: string)
     
     document.body.appendChild(tempDiv);
 
+    // Attendre que toutes les images soient chargées
+    const images = tempDiv.querySelectorAll('img');
+    const imagePromises = Array.from(images).map((img) => {
+      return new Promise<void>((resolve, reject) => {
+        if (img.complete) {
+          resolve();
+        } else {
+          img.onload = () => resolve();
+          img.onerror = () => {
+            console.warn('Erreur de chargement d\'image:', img.src);
+            resolve(); // Continuer même si une image échoue
+          };
+          // Timeout après 5 secondes
+          setTimeout(() => {
+            console.warn('Timeout de chargement d\'image:', img.src);
+            resolve();
+          }, 5000);
+        }
+      });
+    });
+
+    await Promise.all(imagePromises);
+
+    // Attendre un peu pour s'assurer que tout est rendu
+    await new Promise(resolve => setTimeout(resolve, 500));
+
     // Convertir en canvas
     const canvas = await html2canvas(tempDiv, {
       scale: 2,
       useCORS: true,
-      allowTaint: true,
+      allowTaint: false, // Changé à false pour éviter les problèmes CORS
       backgroundColor: '#ffffff',
       width: 794, // A4 width in pixels at 96 DPI
-      height: tempDiv.scrollHeight
+      height: tempDiv.scrollHeight,
+      logging: false,
+      imageTimeout: 15000
     });
 
     // Nettoyer l'élément temporaire

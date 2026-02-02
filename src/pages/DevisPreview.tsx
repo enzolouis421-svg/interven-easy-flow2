@@ -192,7 +192,7 @@ export default function DevisPreview() {
     }
   };
 
-  const handleSendEmail = async () => {
+  const handleSendEmail = () => {
     if (!client?.email) {
       toast({
         variant: "destructive",
@@ -202,78 +202,23 @@ export default function DevisPreview() {
       return;
     }
 
-    try {
-      // Générer le PDF d'abord
-      toast({
-        title: "Génération du PDF",
-        description: "Le PDF du devis est en cours de génération...",
-      });
+    const subject = encodeURIComponent(`Devis ${devis.reference}`);
+    const body = encodeURIComponent(
+      `Bonjour ${client.prenom || ""} ${client.nom},\n\n` +
+      `Veuillez trouver ci-joint votre devis ${devis.reference}.\n\n` +
+      `N'hésitez pas à me contacter pour toute question.\n\n` +
+      `Cordialement,\n` +
+      `${company?.nom_entreprise || ""}\n` +
+      `${company?.email || ""}\n` +
+      `${company?.telephone || ""}`
+    );
 
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast({
-          variant: "destructive",
-          title: "Erreur",
-          description: "Vous devez être connecté pour envoyer le devis",
-        });
-        return;
-      }
-
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-pdf`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "",
-          },
-          body: JSON.stringify({ type: "devis", id }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Erreur lors de la génération du PDF");
-      }
-
-      const data = await response.json();
-
-      if (data.html) {
-        // Générer le PDF et le télécharger
-        const { generatePDFFromHTML } = await import("@/lib/pdfGenerator");
-        const filename = `devis-${devis?.reference || id}-${new Date().toISOString().split('T')[0]}.pdf`;
-        
-        await generatePDFFromHTML(data.html, filename);
-
-        // Préparer l'email avec instructions pour attacher le PDF
-        const subject = encodeURIComponent(`Devis ${devis.reference}`);
-        const body = encodeURIComponent(
-          `Bonjour ${client.prenom || ""} ${client.nom},\n\n` +
-          `Veuillez trouver ci-joint votre devis ${devis.reference}.\n\n` +
-          `Le PDF a été téléchargé sur votre appareil. Veuillez l'attacher à cet email avant de l'envoyer.\n\n` +
-          `N'hésitez pas à me contacter pour toute question.\n\n` +
-          `Cordialement,\n` +
-          `${company?.nom_entreprise || ""}\n` +
-          `${company?.email || ""}\n` +
-          `${company?.telephone || ""}`
-        );
-
-        // Ouvrir le client mail
-        window.location.href = `mailto:${client.email}?subject=${subject}&body=${body}`;
-
-        toast({
-          title: "PDF généré et email préparé",
-          description: "Le PDF a été téléchargé. Veuillez l'attacher à l'email qui s'ouvre.",
-        });
-      }
-    } catch (error: any) {
-      console.error("Erreur envoi email:", error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: error.message || "Impossible de générer le PDF pour l'envoi.",
-      });
-    }
+    window.location.href = `mailto:${client.email}?subject=${subject}&body=${body}`;
+    
+    toast({
+      title: "Email préparé",
+      description: "Votre client mail s'ouvre avec le message pré-rempli.",
+    });
   };
 
   const handleRelance = () => {

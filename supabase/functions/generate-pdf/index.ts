@@ -206,8 +206,19 @@ function generateInterventionHTML(data: any) {
     .content-section { margin-bottom: 18px; page-break-inside: avoid; }
     .content-section h3 { font-weight: bold; font-size: 14px; margin-bottom: 6px; }
     .content-text { color: #374151; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word; font-size: 11px; }
-    .photos-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 12px; }
-    .photo-item { width: 100%; max-width: 100%; height: auto; max-height: 150px; object-fit: contain; border-radius: 6px; border: 1px solid #e5e7eb; background: #f9fafb; }
+    .photos-grid { display: grid; gap: 10px; margin-top: 12px; }
+    .photos-grid.photo-1 { grid-template-columns: 1fr; }
+    .photos-grid.photo-2 { grid-template-columns: repeat(2, 1fr); }
+    .photos-grid.photo-3 { grid-template-columns: repeat(3, 1fr); }
+    .photos-grid.photo-4 { grid-template-columns: repeat(2, 1fr); }
+    .photos-grid.photo-5 { grid-template-columns: repeat(3, 1fr); }
+    .photos-grid.photo-6 { grid-template-columns: repeat(3, 1fr); }
+    .photos-grid.photo-7 { grid-template-columns: repeat(4, 1fr); }
+    .photos-grid.photo-8 { grid-template-columns: repeat(4, 1fr); }
+    .photos-grid.photo-9 { grid-template-columns: repeat(3, 1fr); }
+    .photos-grid.photo-10 { grid-template-columns: repeat(4, 1fr); }
+    .photos-grid.photo-many { grid-template-columns: repeat(4, 1fr); }
+    .photo-item { width: 100%; max-width: 100%; height: auto; max-height: 200px; object-fit: contain; border-radius: 6px; border: 1px solid #e5e7eb; background: #f9fafb; page-break-inside: avoid; }
     .signature-section { margin-top: 24px; padding-top: 20px; border-top: 2px solid #e5e7eb; page-break-inside: avoid; }
     .signature-section h3 { font-weight: bold; font-size: 14px; margin-bottom: 12px; }
     .signature-box { border: 2px solid #d1d5db; border-radius: 6px; padding: 12px; display: inline-block; background: #f9fafb; max-width: 100%; }
@@ -288,9 +299,9 @@ function generateInterventionHTML(data: any) {
     
     ${photos && photos.length > 0 ? `
     <div class="content-section">
-      <h3>Photos</h3>
-      <div class="photos-grid">
-        ${photos.map((url: string) => `<img src="${safe(url)}" alt="Photo" class="photo-item" />`).join('')}
+      <h3>Photos (${photos.length})</h3>
+      <div class="photos-grid photo-${photos.length <= 10 ? photos.length : 'many'}">
+        ${photos.map((url: string, index: number) => `<img src="${safe(url)}" alt="Photo ${index + 1}" class="photo-item" crossorigin="anonymous" />`).join('')}
       </div>
     </div>
     ` : ''}
@@ -299,8 +310,7 @@ function generateInterventionHTML(data: any) {
     <div class="signature-section">
       <h3>Signature client</h3>
       <div class="signature-box">
-        <img src="${safe(data.signature_url)}" alt="Signature client" class="signature-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
-        <div style="display: none; color: #6b7280; font-size: 10px;">Erreur de chargement de la signature</div>
+        <img src="${safe(data.signature_url)}" alt="Signature client" class="signature-img" crossorigin="anonymous" style="max-width: 100%; height: auto;" />
       </div>
       <div class="signature-note">Signature électronique conforme au règlement eIDAS</div>
     </div>
