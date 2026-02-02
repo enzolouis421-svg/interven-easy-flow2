@@ -24,42 +24,80 @@ export const generatePDFFromHTML = async (htmlContent: string, filename: string)
     
     document.body.appendChild(tempDiv);
 
-    // Attendre que toutes les images soient chargées
+    // Attendre que toutes les images soient chargées avec retry
     const images = tempDiv.querySelectorAll('img');
-    const imagePromises = Array.from(images).map((img) => {
-      return new Promise<void>((resolve, reject) => {
-        if (img.complete) {
-          resolve();
-        } else {
-          img.onload = () => resolve();
-          img.onerror = () => {
-            console.warn('Erreur de chargement d\'image:', img.src);
-            resolve(); // Continuer même si une image échoue
-          };
-          // Timeout après 5 secondes
-          setTimeout(() => {
-            console.warn('Timeout de chargement d\'image:', img.src);
+    const imagePromises = Array.from(images).map((img, index) => {
+      return new Promise<void>((resolve) => {
+        const loadImage = (retryCount = 0) => {
+          if (img.complete && img.naturalHeight !== 0) {
             resolve();
-          }, 5000);
-        }
+            return;
+          }
+
+          const maxRetries = 3;
+          const timeout = 10000; // 10 secondes par tentative
+
+          const timeoutId = setTimeout(() => {
+            if (retryCount < maxRetries) {
+              console.warn(`Timeout image ${index + 1}, retry ${retryCount + 1}/${maxRetries}:`, img.src);
+              // Réessayer en forçant le rechargement
+              img.src = img.src + (img.src.includes('?') ? '&' : '?') + `t=${Date.now()}`;
+              loadImage(retryCount + 1);
+            } else {
+              console.warn('Timeout final de chargement d\'image:', img.src);
+              resolve(); // Continuer même si l'image échoue
+            }
+          }, timeout);
+
+          img.onload = () => {
+            clearTimeout(timeoutId);
+            resolve();
+          };
+
+          img.onerror = () => {
+            clearTimeout(timeoutId);
+            if (retryCount < maxRetries) {
+              console.warn(`Erreur image ${index + 1}, retry ${retryCount + 1}/${maxRetries}:`, img.src);
+              // Réessayer en forçant le rechargement
+              setTimeout(() => {
+                img.src = img.src + (img.src.includes('?') ? '&' : '?') + `t=${Date.now()}`;
+                loadImage(retryCount + 1);
+              }, 1000);
+            } else {
+              console.warn('Erreur finale de chargement d\'image:', img.src);
+              resolve(); // Continuer même si l'image échoue
+            }
+          };
+
+          // Forcer le chargement si l'image n'est pas déjà en cours
+          if (!img.complete) {
+            img.loading = 'eager';
+            // S'assurer que l'image est visible pour le chargement
+            img.style.display = 'block';
+          }
+        };
+
+        loadImage();
       });
     });
 
     await Promise.all(imagePromises);
 
     // Attendre un peu pour s'assurer que tout est rendu
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Convertir en canvas
     const canvas = await html2canvas(tempDiv, {
       scale: 2,
       useCORS: true,
-      allowTaint: false, // Changé à false pour éviter les problèmes CORS
+      allowTaint: true, // Permettre le taint pour les images externes
       backgroundColor: '#ffffff',
       width: 794, // A4 width in pixels at 96 DPI
       height: tempDiv.scrollHeight,
       logging: false,
-      imageTimeout: 15000
+      imageTimeout: 30000, // 30 secondes
+      removeContainer: false,
+      foreignObjectRendering: false
     });
 
     // Nettoyer l'élément temporaire

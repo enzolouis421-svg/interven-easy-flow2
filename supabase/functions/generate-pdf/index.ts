@@ -37,22 +37,62 @@ serve(async (req) => {
 
       if (error) throw error;
 
-      // Vérifier que signature_url est bien présent
+      // Vérifier que signature_url est bien présent et accessible
       if (data && !data.signature_url) {
         console.warn('Aucune signature_url trouvée pour l\'intervention:', id);
       } else if (data && data.signature_url) {
         console.log('Signature URL trouvée:', data.signature_url);
-        // Vérifier que l'URL est accessible
+        
+        // Vérifier que l'URL est accessible et convertir en base64 si nécessaire
         try {
-          const testResponse = await fetch(data.signature_url, { method: 'HEAD' });
+          const testResponse = await fetch(data.signature_url);
           if (!testResponse.ok) {
             console.warn('Signature URL non accessible:', data.signature_url, 'Status:', testResponse.status);
           } else {
             console.log('Signature URL accessible:', data.signature_url);
+            // Essayer de convertir en base64 pour éviter les problèmes CORS
+            try {
+              const blob = await testResponse.blob();
+              const arrayBuffer = await blob.arrayBuffer();
+              const base64 = Buffer.from(arrayBuffer).toString('base64');
+              const mimeType = blob.type || 'image/png';
+              data.signature_url = `data:${mimeType};base64,${base64}`;
+              console.log('Signature convertie en base64');
+            } catch (convertError) {
+              console.warn('Impossible de convertir la signature en base64:', convertError);
+              // Garder l'URL originale
+            }
           }
         } catch (error) {
           console.warn('Erreur test signature URL:', error);
         }
+      }
+      
+      // Faire de même pour les photos
+      if (data && data.photos) {
+        const photos = typeof data.photos === 'string' ? JSON.parse(data.photos) : (data.photos || []);
+        const convertedPhotos = [];
+        for (let i = 0; i < photos.length; i++) {
+          try {
+            const photoResponse = await fetch(photos[i]);
+            if (photoResponse.ok) {
+              const blob = await photoResponse.blob();
+              const arrayBuffer = await blob.arrayBuffer();
+              const base64 = Buffer.from(arrayBuffer).toString('base64');
+              const mimeType = blob.type || 'image/jpeg';
+              convertedPhotos.push(`data:${mimeType};base64,${base64}`);
+              console.log(`Photo ${i + 1} convertie en base64`);
+            } else {
+              console.warn('Photo non accessible:', photos[i], 'Status:', photoResponse.status);
+              convertedPhotos.push(photos[i]); // Garder l'URL originale
+            }
+          } catch (error) {
+            console.warn('Erreur conversion photo:', photos[i], error);
+            convertedPhotos.push(photos[i]); // Garder l'URL originale
+          }
+        }
+        data.photos = convertedPhotos;
+        console.log(`${convertedPhotos.length} photo(s) traitée(s)`);
       }
 
       // Récupérer les paramètres entreprise
@@ -189,6 +229,7 @@ function generateInterventionHTML(data: any) {
   const formatDate = (date: string) => date ? new Date(date).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
   const statusLabels: any = { a_faire: "À faire", en_cours: "En cours", termine: "Terminée" };
   const statusLabel = statusLabels[data.statut] || data.statut;
+  // Les photos sont déjà converties en base64 dans l'Edge Function si nécessaire
   const photos = typeof data.photos === 'string' ? JSON.parse(data.photos) : (data.photos || []);
   
   return `<!DOCTYPE html>
