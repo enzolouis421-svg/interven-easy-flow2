@@ -354,19 +354,41 @@ export default function InterventionDetail() {
     }
 
     // Préparer les données à sauvegarder en ne gardant que les champs nécessaires
+    // S'assurer que toutes les valeurs vides sont converties en null
     const dataToSave: any = {
-      titre: formData.titre,
-      description: formData.description || null,
-      client_id: formData.client_id, // Déjà validé
-      adresse: formData.adresse || null,
-      materiel_utilise: formData.materiel_utilise || null,
-      commentaire_technicien: formData.commentaire_technicien || null,
-      statut: formData.statut,
+      titre: formData.titre?.trim() || '',
+      description: formData.description?.trim() || null,
+      client_id: formData.client_id?.trim() || '', // Déjà validé mais on s'assure
+      adresse: formData.adresse?.trim() || null,
+      materiel_utilise: formData.materiel_utilise?.trim() || null,
+      commentaire_technicien: formData.commentaire_technicien?.trim() || null,
+      statut: formData.statut || 'a_faire',
       date_intervention: formData.date_intervention || null,
-      photos: formData.photos && formData.photos.length > 0 ? formData.photos : null,
-      signature_url: signatureUrl || null, // null si vide ou effacée
+      photos: Array.isArray(formData.photos) && formData.photos.length > 0 ? formData.photos : null,
+      signature_url: (signatureUrl && signatureUrl.trim() !== '') ? signatureUrl : null, // null si vide ou effacée
       user_id: user.id,
     };
+    
+    // Validation finale avant envoi
+    if (!dataToSave.titre || dataToSave.titre.trim() === '') {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Le titre est obligatoire",
+      });
+      setLoading(false);
+      return;
+    }
+    
+    if (!dataToSave.client_id || dataToSave.client_id.trim() === '') {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Veuillez sélectionner un client",
+      });
+      setLoading(false);
+      return;
+    }
 
     let error;
     let savedId = id;
