@@ -54,7 +54,10 @@ serve(async (req) => {
             try {
               const blob = await testResponse.blob();
               const arrayBuffer = await blob.arrayBuffer();
-              const base64 = Buffer.from(arrayBuffer).toString('base64');
+              // Utiliser btoa pour Deno (compatible avec les Edge Functions)
+              const uint8Array = new Uint8Array(arrayBuffer);
+              const binary = Array.from(uint8Array, byte => String.fromCharCode(byte)).join('');
+              const base64 = btoa(binary);
               const mimeType = blob.type || 'image/png';
               data.signature_url = `data:${mimeType};base64,${base64}`;
               console.log('Signature convertie en base64');
@@ -73,23 +76,26 @@ serve(async (req) => {
         const photos = typeof data.photos === 'string' ? JSON.parse(data.photos) : (data.photos || []);
         const convertedPhotos = [];
         for (let i = 0; i < photos.length; i++) {
-          try {
-            const photoResponse = await fetch(photos[i]);
-            if (photoResponse.ok) {
-              const blob = await photoResponse.blob();
-              const arrayBuffer = await blob.arrayBuffer();
-              const base64 = Buffer.from(arrayBuffer).toString('base64');
-              const mimeType = blob.type || 'image/jpeg';
-              convertedPhotos.push(`data:${mimeType};base64,${base64}`);
-              console.log(`Photo ${i + 1} convertie en base64`);
-            } else {
-              console.warn('Photo non accessible:', photos[i], 'Status:', photoResponse.status);
+            try {
+              const photoResponse = await fetch(photos[i]);
+              if (photoResponse.ok) {
+                const blob = await photoResponse.blob();
+                const arrayBuffer = await blob.arrayBuffer();
+                // Utiliser btoa pour Deno (compatible avec les Edge Functions)
+                const uint8Array = new Uint8Array(arrayBuffer);
+                const binary = Array.from(uint8Array, byte => String.fromCharCode(byte)).join('');
+                const base64 = btoa(binary);
+                const mimeType = blob.type || 'image/jpeg';
+                convertedPhotos.push(`data:${mimeType};base64,${base64}`);
+                console.log(`Photo ${i + 1} convertie en base64`);
+              } else {
+                console.warn('Photo non accessible:', photos[i], 'Status:', photoResponse.status);
+                convertedPhotos.push(photos[i]); // Garder l'URL originale
+              }
+            } catch (error) {
+              console.warn('Erreur conversion photo:', photos[i], error);
               convertedPhotos.push(photos[i]); // Garder l'URL originale
             }
-          } catch (error) {
-            console.warn('Erreur conversion photo:', photos[i], error);
-            convertedPhotos.push(photos[i]); // Garder l'URL originale
-          }
         }
         data.photos = convertedPhotos;
         console.log(`${convertedPhotos.length} photo(s) traitée(s)`);
