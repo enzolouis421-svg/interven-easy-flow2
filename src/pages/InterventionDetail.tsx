@@ -354,20 +354,53 @@ export default function InterventionDetail() {
     }
 
     // Préparer les données à sauvegarder en ne gardant que les champs nécessaires
-    // S'assurer que toutes les valeurs vides sont converties en null
-    const dataToSave: any = {
-      titre: formData.titre?.trim() || '',
-      description: formData.description?.trim() || null,
-      client_id: formData.client_id?.trim() || '', // Déjà validé mais on s'assure
-      adresse: formData.adresse?.trim() || null,
-      materiel_utilise: formData.materiel_utilise?.trim() || null,
-      commentaire_technicien: formData.commentaire_technicien?.trim() || null,
-      statut: formData.statut || 'a_faire',
-      date_intervention: formData.date_intervention || null,
-      photos: Array.isArray(formData.photos) && formData.photos.length > 0 ? formData.photos : null,
-      signature_url: (signatureUrl && signatureUrl.trim() !== '') ? signatureUrl : null, // null si vide ou effacée
+    // S'assurer que toutes les valeurs vides sont converties en null et qu'on n'envoie pas undefined
+    const dataToSave: Record<string, any> = {
+      titre: (formData.titre?.trim() || '').trim(),
+      client_id: (formData.client_id?.trim() || '').trim(),
       user_id: user.id,
     };
+    
+    // Ajouter les champs optionnels seulement s'ils ont une valeur
+    if (formData.description?.trim()) {
+      dataToSave.description = formData.description.trim();
+    } else {
+      dataToSave.description = null;
+    }
+    
+    if (formData.adresse?.trim()) {
+      dataToSave.adresse = formData.adresse.trim();
+    } else {
+      dataToSave.adresse = null;
+    }
+    
+    if (formData.materiel_utilise?.trim()) {
+      dataToSave.materiel_utilise = formData.materiel_utilise.trim();
+    } else {
+      dataToSave.materiel_utilise = null;
+    }
+    
+    if (formData.commentaire_technicien?.trim()) {
+      dataToSave.commentaire_technicien = formData.commentaire_technicien.trim();
+    } else {
+      dataToSave.commentaire_technicien = null;
+    }
+    
+    dataToSave.statut = formData.statut || 'a_faire';
+    dataToSave.date_intervention = formData.date_intervention || null;
+    
+    if (Array.isArray(formData.photos) && formData.photos.length > 0) {
+      dataToSave.photos = formData.photos;
+    } else {
+      dataToSave.photos = null;
+    }
+    
+    // Gestion de la signature - s'assurer que c'est null et pas undefined ou chaîne vide
+    if (signatureUrl && typeof signatureUrl === 'string' && signatureUrl.trim() !== '') {
+      dataToSave.signature_url = signatureUrl.trim();
+    } else {
+      dataToSave.signature_url = null;
+    }
     
     // Validation finale avant envoi
     if (!dataToSave.titre || dataToSave.titre.trim() === '') {
@@ -412,12 +445,28 @@ export default function InterventionDetail() {
     }
 
     if (error) {
-      console.error("Erreur lors de la sauvegarde:", error);
-      console.error("Données envoyées:", JSON.stringify(dataToSave, null, 2));
+      console.error("❌ Erreur lors de la sauvegarde:", error);
+      console.error("📤 Données envoyées:", JSON.stringify(dataToSave, null, 2));
+      console.error("🔍 Détails de l'erreur:", {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+      });
+      
+      // Message d'erreur plus détaillé pour l'utilisateur
+      let errorMessage = error.message || "Une erreur est survenue lors de l'enregistrement";
+      if (error.details) {
+        errorMessage += `\nDétails: ${error.details}`;
+      }
+      if (error.hint) {
+        errorMessage += `\nIndice: ${error.hint}`;
+      }
+      
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: error.message || "Une erreur est survenue lors de l'enregistrement",
+        description: errorMessage,
       });
       setLoading(false);
     } else {
