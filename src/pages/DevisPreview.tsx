@@ -354,33 +354,33 @@ export default function DevisPreview() {
       </div>
 
       {/* Devis Preview */}
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="bg-white text-black p-8 md:p-12 rounded-lg shadow-lg border border-border">
+      <div className="container mx-auto px-3 sm:px-4 md:px-6 py-6 sm:py-8 max-w-6xl">
+        <div className="bg-white text-black p-4 sm:p-5 md:p-8 lg:p-12 rounded-lg shadow-lg border border-border">
           {/* Header */}
-          <div className="flex justify-between items-start mb-8 pb-8 border-b-2 border-gray-200">
-            <div>
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-6 mb-6 sm:mb-8 pb-6 sm:pb-8 border-b-2 border-gray-200">
+            <div className="flex-1 min-w-0">
               {company?.logo_url && (
-                <img src={company.logo_url} alt="Logo" className="h-16 mb-4" />
+                <img src={company.logo_url} alt="Logo" className="h-12 sm:h-16 mb-3 sm:mb-4" />
               )}
-              <h2 className="text-xl font-bold">{company?.nom_entreprise}</h2>
-              <p className="text-sm text-gray-600">{company?.adresse}</p>
-              <p className="text-sm text-gray-600">
+              <h2 className="text-lg sm:text-xl font-bold break-words">{company?.nom_entreprise}</h2>
+              <p className="text-xs sm:text-sm text-gray-600 break-words">{company?.adresse}</p>
+              <p className="text-xs sm:text-sm text-gray-600 break-words">
                 {company?.code_postal} {company?.ville}
               </p>
-              <p className="text-sm text-gray-600">SIRET: {company?.siret}</p>
-              <p className="text-sm text-gray-600">{company?.telephone}</p>
-              <p className="text-sm text-gray-600">{company?.email}</p>
+              {company?.siret && <p className="text-xs sm:text-sm text-gray-600">SIRET: {company?.siret}</p>}
+              {company?.telephone && <p className="text-xs sm:text-sm text-gray-600">{company?.telephone}</p>}
+              {company?.email && <p className="text-xs sm:text-sm text-gray-600 break-all">{company?.email}</p>}
             </div>
-            <div className="text-right">
-              <h1 className="text-3xl font-bold text-primary mb-2">DEVIS</h1>
-              <p className="text-sm">
+            <div className="text-left sm:text-right w-full sm:w-auto">
+              <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-2">DEVIS</h1>
+              <p className="text-xs sm:text-sm">
                 <span className="font-semibold">N°:</span> {devis.reference}
               </p>
-              <p className="text-sm">
+              <p className="text-xs sm:text-sm">
                 <span className="font-semibold">Date:</span>{" "}
                 {new Date(devis.date_creation).toLocaleDateString("fr-FR")}
               </p>
-              <p className="text-sm">
+              <p className="text-xs sm:text-sm">
                 <span className="font-semibold">Valide jusqu'au:</span>{" "}
                 {validUntil.toLocaleDateString("fr-FR")}
               </p>
@@ -388,45 +388,47 @@ export default function DevisPreview() {
           </div>
 
           {/* Client Info */}
-          <div className="mb-8">
-            <h3 className="font-bold text-lg mb-2">Client</h3>
-            <div className="bg-gray-50 p-4 rounded">
-              <p className="font-semibold">
+          <div className="mb-6 sm:mb-8">
+            <h3 className="font-bold text-base sm:text-lg mb-2">Client</h3>
+            <div className="bg-gray-50 p-3 sm:p-4 rounded">
+              <p className="font-semibold text-sm sm:text-base break-words">
                 {client?.entreprise || `${client?.prenom} ${client?.nom}`}
               </p>
-              {client?.adresse && <p className="text-sm">{client.adresse}</p>}
+              {client?.adresse && <p className="text-xs sm:text-sm break-words mt-1">{client.adresse}</p>}
               {client?.code_postal && (
-                <p className="text-sm">
+                <p className="text-xs sm:text-sm mt-1 break-words">
                   {client.code_postal} {client.ville}
                 </p>
               )}
-              {client?.email && <p className="text-sm">{client.email}</p>}
-              {client?.telephone && <p className="text-sm">{client.telephone}</p>}
+              {client?.email && <p className="text-xs sm:text-sm mt-1 break-all">{client.email}</p>}
+              {client?.telephone && <p className="text-xs sm:text-sm mt-1">{client.telephone}</p>}
             </div>
           </div>
 
           {/* Service Lines */}
-          <div className="mb-8">
-            <table className="w-full border-collapse">
+          <div className="mb-6 sm:mb-8 overflow-x-auto -mx-2 sm:-mx-4 md:mx-0 px-2 sm:px-4 md:px-0">
+            <table className="w-full border-collapse min-w-[600px]">
               <thead>
                 <tr className="bg-primary/10">
-                  <th className="border border-gray-300 p-3 text-left">Description</th>
-                  <th className="border border-gray-300 p-3 text-center w-24">Qté</th>
-                  <th className="border border-gray-300 p-3 text-right w-32">P.U. HT</th>
-                  <th className="border border-gray-300 p-3 text-center w-20">TVA</th>
-                  <th className="border border-gray-300 p-3 text-right w-32">Total HT</th>
+                  <th className="border border-gray-300 p-2 sm:p-3 text-left text-xs sm:text-sm min-w-[200px]">Description</th>
+                  <th className="border border-gray-300 p-2 sm:p-3 text-center w-20 sm:w-24 text-xs sm:text-sm">Qté</th>
+                  <th className="border border-gray-300 p-2 sm:p-3 text-right w-24 sm:w-32 text-xs sm:text-sm">P.U. HT</th>
+                  <th className="border border-gray-300 p-2 sm:p-3 text-center w-16 sm:w-20 text-xs sm:text-sm">TVA</th>
+                  <th className="border border-gray-300 p-2 sm:p-3 text-right w-24 sm:w-32 text-xs sm:text-sm">Total HT</th>
                 </tr>
               </thead>
               <tbody>
                 {devis.lignes_prestation.map((ligne: any, index: number) => (
                   <tr key={index}>
-                    <td className="border border-gray-300 p-3">{ligne.description}</td>
-                    <td className="border border-gray-300 p-3 text-center">{ligne.quantite}</td>
-                    <td className="border border-gray-300 p-3 text-right">
+                    <td className="border border-gray-300 p-2 sm:p-3 text-xs sm:text-sm break-words align-top">
+                      <div className="font-medium">{ligne.description}</div>
+                    </td>
+                    <td className="border border-gray-300 p-2 sm:p-3 text-center text-xs sm:text-sm align-top">{ligne.quantite}</td>
+                    <td className="border border-gray-300 p-2 sm:p-3 text-right text-xs sm:text-sm align-top">
                       {ligne.prix_unitaire.toFixed(2)} €
                     </td>
-                    <td className="border border-gray-300 p-3 text-center">{ligne.tva}%</td>
-                    <td className="border border-gray-300 p-3 text-right">
+                    <td className="border border-gray-300 p-2 sm:p-3 text-center text-xs sm:text-sm align-top">{ligne.tva}%</td>
+                    <td className="border border-gray-300 p-2 sm:p-3 text-right text-xs sm:text-sm align-top">
                       {(ligne.quantite * ligne.prix_unitaire).toFixed(2)} €
                     </td>
                   </tr>
@@ -454,33 +456,33 @@ export default function DevisPreview() {
           </div>
 
           {/* Conditions */}
-          <div className="space-y-4 text-sm border-t-2 border-gray-200 pt-6">
+          <div className="space-y-3 sm:space-y-4 text-xs sm:text-sm border-t-2 border-gray-200 pt-4 sm:pt-6">
             {devis.delai_realisation && (
-              <div>
+              <div className="space-y-1">
                 <p className="font-semibold">Délai de réalisation:</p>
-                <p className="text-gray-600">{devis.delai_realisation}</p>
+                <p className="text-gray-600 break-words pl-2">{devis.delai_realisation}</p>
               </div>
             )}
-            <div>
+            <div className="space-y-1">
               <p className="font-semibold">Conditions de paiement:</p>
-              <p className="text-gray-600">{devis.conditions_paiement}</p>
+              <p className="text-gray-600 break-words pl-2">{devis.conditions_paiement}</p>
             </div>
             {devis.notes && (
-              <div>
+              <div className="space-y-1">
                 <p className="font-semibold">Notes:</p>
-                <p className="text-gray-600">{devis.notes}</p>
+                <p className="text-gray-600 whitespace-pre-wrap break-words pl-2">{devis.notes}</p>
               </div>
             )}
           </div>
 
           {/* Signatures Section */}
-          <div className="mt-8 sm:mt-12 border-t-2 border-gray-200 pt-6 sm:pt-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8">
+          <div className="mt-6 sm:mt-8 lg:mt-12 border-t-2 border-gray-200 pt-4 sm:pt-6 lg:pt-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-4 sm:mb-6 lg:mb-8">
               {/* Client Signature */}
-              <div className="space-y-3 sm:space-y-4">
-                <p className="font-semibold text-center text-sm sm:text-base">Signature du client</p>
+              <div className="space-y-2 sm:space-y-3 lg:space-y-4 flex flex-col">
+                <p className="font-semibold text-center text-xs sm:text-sm lg:text-base">Signature du client</p>
                 {devis.client_signature_url ? (
-                  <div className="border-2 border-gray-300 rounded p-2 h-28 sm:h-32 flex items-center justify-center bg-gray-50">
+                  <div className="border-2 border-gray-300 rounded p-2 h-32 sm:h-32 lg:h-40 flex items-center justify-center bg-gray-50 flex-shrink-0">
                     <img 
                       src={devis.client_signature_url} 
                       alt="Signature client" 
@@ -488,11 +490,11 @@ export default function DevisPreview() {
                     />
                   </div>
                 ) : (
-                  <div className="border-2 border-dashed border-gray-300 rounded p-4 h-28 sm:h-32 flex items-center justify-center bg-gray-50">
+                  <div className="border-2 border-dashed border-gray-300 rounded p-4 h-32 sm:h-32 lg:h-40 flex items-center justify-center bg-gray-50 flex-shrink-0">
                     <p className="text-gray-400 text-xs sm:text-sm">Signature en attente</p>
                   </div>
                 )}
-                <div className="space-y-1 text-center text-xs sm:text-sm">
+                <div className="space-y-1 text-center text-xs sm:text-sm mt-auto">
                   <p className="font-semibold">Date:</p>
                   <div className="border-b-2 border-gray-300 w-full sm:w-40 mx-auto pb-1">
                     {devis.date_signature 
@@ -503,10 +505,10 @@ export default function DevisPreview() {
               </div>
 
               {/* Company Signature */}
-              <div className="space-y-3 sm:space-y-4">
-                <p className="font-semibold text-center text-sm sm:text-base">Signature de l'entreprise</p>
+              <div className="space-y-2 sm:space-y-3 lg:space-y-4 flex flex-col">
+                <p className="font-semibold text-center text-xs sm:text-sm lg:text-base">Signature de l'entreprise</p>
                 {devis.company_signature_url ? (
-                  <div className="border-2 border-gray-300 rounded p-2 h-28 sm:h-32 flex items-center justify-center bg-gray-50">
+                  <div className="border-2 border-gray-300 rounded p-2 h-32 sm:h-32 lg:h-40 flex items-center justify-center bg-gray-50 flex-shrink-0">
                     <img 
                       src={devis.company_signature_url} 
                       alt="Signature entreprise" 
@@ -514,11 +516,11 @@ export default function DevisPreview() {
                     />
                   </div>
                 ) : (
-                  <div className="border-2 border-dashed border-gray-300 rounded p-4 h-28 sm:h-32 flex items-center justify-center bg-gray-50">
+                  <div className="border-2 border-dashed border-gray-300 rounded p-4 h-32 sm:h-32 lg:h-40 flex items-center justify-center bg-gray-50 flex-shrink-0">
                     <p className="text-gray-400 text-xs sm:text-sm">Signature en attente</p>
                   </div>
                 )}
-                <div className="space-y-1 text-center text-xs sm:text-sm">
+                <div className="space-y-1 text-center text-xs sm:text-sm mt-auto">
                   <p className="font-semibold">Date:</p>
                   <div className="border-b-2 border-gray-300 w-full sm:w-40 mx-auto pb-1">
                     {devis.date_signature 

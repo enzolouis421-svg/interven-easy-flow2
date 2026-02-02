@@ -471,12 +471,12 @@ export default function InterventionsDevis() {
                       {d.pret_envoi && <Badge variant="default" className="bg-accent text-xs">Prêt</Badge>}
                     </div>
                   </div>
-                  <div className="flex gap-1 flex-wrap justify-end flex-shrink-0">
+                  <div className="flex gap-1 flex-shrink-0">
                     <Button variant="ghost" size="icon" onClick={() => navigate(`/devis/preview/${d.id}`)} className="hover:bg-secondary/10 hover:text-secondary h-7 w-7 sm:h-8 sm:w-8" title="Visualiser">
                       <Eye className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                     </Button>
                     <Button variant="ghost" size="icon" onClick={() => navigate(`/devis/${d.id}`)} className="hover:bg-primary/10 hover:text-primary h-7 w-7 sm:h-8 sm:w-8" title="Modifier">
-                      <FileText className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                      <Edit className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                     </Button>
                     <Button variant="ghost" size="icon" onClick={() => handleDownloadDevisPDF(d.id)} className="hover:bg-accent/10 hover:text-accent h-7 w-7 sm:h-8 sm:w-8" title="Télécharger PDF">
                       <Download className="h-3 w-3 sm:h-3.5 sm:w-3.5" />

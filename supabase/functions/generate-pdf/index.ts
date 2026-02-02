@@ -37,6 +37,13 @@ serve(async (req) => {
 
       if (error) throw error;
 
+      // Vérifier que signature_url est bien présent
+      if (data && !data.signature_url) {
+        console.warn('Aucune signature_url trouvée pour l\'intervention:', id);
+      } else if (data && data.signature_url) {
+        console.log('Signature URL trouvée:', data.signature_url);
+      }
+
       // Récupérer les paramètres entreprise
       if (data && data.user_id) {
         const { data: companyData } = await supabase
@@ -204,7 +211,7 @@ function generateInterventionHTML(data: any) {
     .signature-section { margin-top: 24px; padding-top: 20px; border-top: 2px solid #e5e7eb; page-break-inside: avoid; }
     .signature-section h3 { font-weight: bold; font-size: 14px; margin-bottom: 12px; }
     .signature-box { border: 2px solid #d1d5db; border-radius: 6px; padding: 12px; display: inline-block; background: #f9fafb; max-width: 100%; }
-    .signature-img { max-height: 120px; max-width: 100%; height: auto; }
+    .signature-img { max-height: 120px; max-width: 100%; height: auto; display: block; margin: 0 auto; }
     .signature-note { font-size: 9px; color: #6b7280; margin-top: 6px; }
   </style>
 </head>
@@ -292,7 +299,8 @@ function generateInterventionHTML(data: any) {
     <div class="signature-section">
       <h3>Signature client</h3>
       <div class="signature-box">
-        <img src="${safe(data.signature_url)}" alt="Signature client" class="signature-img" />
+        <img src="${safe(data.signature_url)}" alt="Signature client" class="signature-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+        <div style="display: none; color: #6b7280; font-size: 10px;">Erreur de chargement de la signature</div>
       </div>
       <div class="signature-note">Signature électronique conforme au règlement eIDAS</div>
     </div>
