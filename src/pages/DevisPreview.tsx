@@ -192,7 +192,7 @@ export default function DevisPreview() {
     }
   };
 
-  const handleSendEmail = () => {
+  const handleSendEmail = async () => {
     if (!client?.email) {
       toast({
         variant: "destructive",
@@ -202,18 +202,78 @@ export default function DevisPreview() {
       return;
     }
 
-    const subject = encodeURIComponent(`Devis ${devis.reference}`);
-    const body = encodeURIComponent(
-      `Bonjour ${client.prenom || ""} ${client.nom},\n\n` +
-      `Veuillez trouver ci-joint votre devis ${devis.reference}.\n\n` +
-      `N'hésitez pas à me contacter pour toute question.\n\n` +
-      `Cordialement,\n` +
-      `${company?.nom_entreprise || ""}\n` +
-      `${company?.email || ""}\n` +
-      `${company?.telephone || ""}`
-    );
+    try {
+      // Générer le PDF d'abord
+      toast({
+        title: "Génération du PDF",
+        description: "Le PDF du devis est en cours de génération...",
+      });
 
-    window.location.href = `mailto:${client.email}?subject=${subject}&body=${body}`;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Vous devez être connecté pour envoyer le devis",
+        });
+        return;
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-pdf`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "",
+          },
+          body: JSON.stringify({ type: "devis", id }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de la génération du PDF");
+      }
+
+      const data = await response.json();
+
+      if (data.html) {
+        // Générer le PDF et le télécharger
+        const { generatePDFFromHTML } = await import("@/lib/pdfGenerator");
+        const filename = `devis-${devis?.reference || id}-${new Date().toISOString().split('T')[0]}.pdf`;
+        
+        await generatePDFFromHTML(data.html, filename);
+
+        // Préparer l'email avec instructions pour attacher le PDF
+        const subject = encodeURIComponent(`Devis ${devis.reference}`);
+        const body = encodeURIComponent(
+          `Bonjour ${client.prenom || ""} ${client.nom},\n\n` +
+          `Veuillez trouver ci-joint votre devis ${devis.reference}.\n\n` +
+          `Le PDF a été téléchargé sur votre appareil. Veuillez l'attacher à cet email avant de l'envoyer.\n\n` +
+          `N'hésitez pas à me contacter pour toute question.\n\n` +
+          `Cordialement,\n` +
+          `${company?.nom_entreprise || ""}\n` +
+          `${company?.email || ""}\n` +
+          `${company?.telephone || ""}`
+        );
+
+        // Ouvrir le client mail
+        window.location.href = `mailto:${client.email}?subject=${subject}&body=${body}`;
+
+        toast({
+          title: "PDF généré et email préparé",
+          description: "Le PDF a été téléchargé. Veuillez l'attacher à l'email qui s'ouvre.",
+        });
+      }
+    } catch (error: any) {
+      console.error("Erreur envoi email:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: error.message || "Impossible de générer le PDF pour l'envoi.",
+      });
+    }
   };
 
   const handleRelance = () => {
@@ -414,27 +474,27 @@ export default function DevisPreview() {
           </div>
 
           {/* Signatures Section */}
-          <div className="mt-12 border-t-2 border-gray-200 pt-8">
-            <div className="grid grid-cols-2 gap-8 mb-8">
+          <div className="mt-8 sm:mt-12 border-t-2 border-gray-200 pt-6 sm:pt-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8">
               {/* Client Signature */}
-              <div className="space-y-4">
-                <p className="font-semibold text-center">Signature du client</p>
+              <div className="space-y-3 sm:space-y-4">
+                <p className="font-semibold text-center text-sm sm:text-base">Signature du client</p>
                 {devis.client_signature_url ? (
-                  <div className="border-2 border-gray-300 rounded p-2 h-32 flex items-center justify-center bg-gray-50">
+                  <div className="border-2 border-gray-300 rounded p-2 h-28 sm:h-32 flex items-center justify-center bg-gray-50">
                     <img 
                       src={devis.client_signature_url} 
                       alt="Signature client" 
-                      className="max-h-full"
+                      className="max-h-full max-w-full object-contain"
                     />
                   </div>
                 ) : (
-                  <div className="border-2 border-dashed border-gray-300 rounded p-4 h-32 flex items-center justify-center bg-gray-50">
-                    <p className="text-gray-400 text-sm">Signature en attente</p>
+                  <div className="border-2 border-dashed border-gray-300 rounded p-4 h-28 sm:h-32 flex items-center justify-center bg-gray-50">
+                    <p className="text-gray-400 text-xs sm:text-sm">Signature en attente</p>
                   </div>
                 )}
-                <div className="space-y-1 text-center text-sm">
+                <div className="space-y-1 text-center text-xs sm:text-sm">
                   <p className="font-semibold">Date:</p>
-                  <div className="border-b-2 border-gray-300 w-40 mx-auto pb-1">
+                  <div className="border-b-2 border-gray-300 w-full sm:w-40 mx-auto pb-1">
                     {devis.date_signature 
                       ? new Date(devis.date_signature).toLocaleDateString("fr-FR")
                       : "___/___/_____"}
@@ -443,24 +503,24 @@ export default function DevisPreview() {
               </div>
 
               {/* Company Signature */}
-              <div className="space-y-4">
-                <p className="font-semibold text-center">Signature de l'entreprise</p>
+              <div className="space-y-3 sm:space-y-4">
+                <p className="font-semibold text-center text-sm sm:text-base">Signature de l'entreprise</p>
                 {devis.company_signature_url ? (
-                  <div className="border-2 border-gray-300 rounded p-2 h-32 flex items-center justify-center bg-gray-50">
+                  <div className="border-2 border-gray-300 rounded p-2 h-28 sm:h-32 flex items-center justify-center bg-gray-50">
                     <img 
                       src={devis.company_signature_url} 
                       alt="Signature entreprise" 
-                      className="max-h-full"
+                      className="max-h-full max-w-full object-contain"
                     />
                   </div>
                 ) : (
-                  <div className="border-2 border-dashed border-gray-300 rounded p-4 h-32 flex items-center justify-center bg-gray-50">
-                    <p className="text-gray-400 text-sm">Signature en attente</p>
+                  <div className="border-2 border-dashed border-gray-300 rounded p-4 h-28 sm:h-32 flex items-center justify-center bg-gray-50">
+                    <p className="text-gray-400 text-xs sm:text-sm">Signature en attente</p>
                   </div>
                 )}
-                <div className="space-y-1 text-center text-sm">
+                <div className="space-y-1 text-center text-xs sm:text-sm">
                   <p className="font-semibold">Date:</p>
-                  <div className="border-b-2 border-gray-300 w-40 mx-auto pb-1">
+                  <div className="border-b-2 border-gray-300 w-full sm:w-40 mx-auto pb-1">
                     {devis.date_signature 
                       ? new Date(devis.date_signature).toLocaleDateString("fr-FR")
                       : "___/___/_____"}

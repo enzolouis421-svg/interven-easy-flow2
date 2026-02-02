@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Download, Edit, Bell } from "lucide-react";
+import { ArrowLeft, Download, Edit, Bell, Mail } from "lucide-react";
 
 export default function FacturePreview() {
   const navigate = useNavigate();
@@ -205,6 +205,90 @@ export default function FacturePreview() {
     }
   };
 
+  const handleSendEmail = async () => {
+    if (!client?.email) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Ce client n'a pas d'adresse email.",
+      });
+      return;
+    }
+
+    try {
+      // Générer le PDF d'abord
+      toast({
+        title: "Génération du PDF",
+        description: "Le PDF de la facture est en cours de génération...",
+      });
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Vous devez être connecté pour envoyer la facture",
+        });
+        return;
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-pdf`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "",
+          },
+          body: JSON.stringify({ type: "facture", id }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de la génération du PDF");
+      }
+
+      const data = await response.json();
+
+      if (data.html) {
+        // Générer le PDF et le télécharger
+        const { generatePDFFromHTML } = await import("@/lib/pdfGenerator");
+        const filename = `facture-${facture?.reference || id}-${new Date().toISOString().split('T')[0]}.pdf`;
+        
+        await generatePDFFromHTML(data.html, filename);
+
+        // Préparer l'email avec instructions pour attacher le PDF
+        const subject = encodeURIComponent(`Facture ${facture.reference}`);
+        const body = encodeURIComponent(
+          `Bonjour ${client.prenom || ""} ${client.nom},\n\n` +
+          `Veuillez trouver ci-joint votre facture ${facture.reference}.\n\n` +
+          `Le PDF a été téléchargé sur votre appareil. Veuillez l'attacher à cet email avant de l'envoyer.\n\n` +
+          `N'hésitez pas à me contacter pour toute question.\n\n` +
+          `Cordialement,\n` +
+          `${company?.nom_entreprise || ""}\n` +
+          `${company?.email || ""}\n` +
+          `${company?.telephone || ""}`
+        );
+
+        // Ouvrir le client mail
+        window.location.href = `mailto:${client.email}?subject=${subject}&body=${body}`;
+
+        toast({
+          title: "PDF généré et email préparé",
+          description: "Le PDF a été téléchargé. Veuillez l'attacher à l'email qui s'ouvre.",
+        });
+      }
+    } catch (error: any) {
+      console.error("Erreur envoi email:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: error.message || "Impossible de générer le PDF pour l'envoi.",
+      });
+    }
+  };
+
   const handleRelance = async () => {
     if (!client?.email) {
       toast({
@@ -236,51 +320,95 @@ export default function FacturePreview() {
     }
 
     try {
-      // Mettre à jour relance_envoyee dans la base de données
-      const { error: updateError } = await supabase
-        .from("factures")
-        .update({ relance_envoyee: true })
-        .eq("id", id);
+      // Générer le PDF d'abord
+      toast({
+        title: "Génération du PDF",
+        description: "Le PDF de la facture est en cours de génération...",
+      });
 
-      if (updateError) {
-        console.error("Erreur mise à jour relance:", updateError);
-        // Continuer quand même pour ouvrir le mailto
-      } else {
-        // Recharger la facture pour mettre à jour l'état
-        setFacture((prev: any) => ({ ...prev, relance_envoyee: true }));
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Vous devez être connecté pour envoyer la relance",
+        });
+        return;
       }
 
-      // Préparer le template email
-      const prenom = client.prenom || "";
-      const nomEntreprise = company?.nom_entreprise || "";
-      const emailEntreprise = company?.email || "";
-      const telephoneEntreprise = company?.telephone || "";
-      const totalTTC = facture.total_ttc?.toFixed(2) || "0.00";
-
-      const subject = encodeURIComponent(
-        `Relance facture ${facture.reference} (${joursRetard} jour${joursRetard > 1 ? "s" : ""} de retard)`
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-pdf`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "",
+          },
+          body: JSON.stringify({ type: "facture", id }),
+        }
       );
 
-      // Générer le message adapté selon les jours de retard
-      const messageBody = generateRelanceMessage(
-        joursRetard,
-        prenom,
-        facture.reference,
-        totalTTC,
-        nomEntreprise,
-        emailEntreprise,
-        telephoneEntreprise
-      );
+      if (!response.ok) {
+        throw new Error("Erreur lors de la génération du PDF");
+      }
 
-      const body = encodeURIComponent(messageBody);
+      const data = await response.json();
 
-      // Ouvrir le client mail
-      window.location.href = `mailto:${client.email}?subject=${subject}&body=${body}`;
+      if (data.html) {
+        // Générer le PDF et le télécharger
+        const { generatePDFFromHTML } = await import("@/lib/pdfGenerator");
+        const filename = `facture-${facture?.reference || id}-${new Date().toISOString().split('T')[0]}.pdf`;
+        
+        await generatePDFFromHTML(data.html, filename);
 
-      toast({
-        title: "Email préparé",
-        description: "Votre client mail s'ouvre avec le message de relance pré-rempli.",
-      });
+        // Mettre à jour relance_envoyee dans la base de données
+        const { error: updateError } = await supabase
+          .from("factures")
+          .update({ relance_envoyee: true })
+          .eq("id", id);
+
+        if (updateError) {
+          console.error("Erreur mise à jour relance:", updateError);
+        } else {
+          setFacture((prev: any) => ({ ...prev, relance_envoyee: true }));
+        }
+
+        // Préparer le template email
+        const prenom = client.prenom || "";
+        const nomEntreprise = company?.nom_entreprise || "";
+        const emailEntreprise = company?.email || "";
+        const telephoneEntreprise = company?.telephone || "";
+        const totalTTC = facture.total_ttc?.toFixed(2) || "0.00";
+
+        const subject = encodeURIComponent(
+          `Relance facture ${facture.reference} (${joursRetard} jour${joursRetard > 1 ? "s" : ""} de retard)`
+        );
+
+        // Générer le message adapté selon les jours de retard
+        const messageBody = generateRelanceMessage(
+          joursRetard,
+          prenom,
+          facture.reference,
+          totalTTC,
+          nomEntreprise,
+          emailEntreprise,
+          telephoneEntreprise
+        );
+
+        const body = encodeURIComponent(
+          messageBody + 
+          `\n\nLe PDF de la facture a été téléchargé sur votre appareil. Veuillez l'attacher à cet email avant de l'envoyer.`
+        );
+
+        // Ouvrir le client mail
+        window.location.href = `mailto:${client.email}?subject=${subject}&body=${body}`;
+
+        toast({
+          title: "PDF généré et email préparé",
+          description: "Le PDF a été téléchargé. Veuillez l'attacher à l'email qui s'ouvre.",
+        });
+      }
     } catch (error: any) {
       console.error("Erreur relance:", error);
       toast({
@@ -323,6 +451,11 @@ export default function FacturePreview() {
             <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
             <span className="hidden md:inline">Modifier</span>
             <span className="md:hidden">Modif.</span>
+          </Button>
+          <Button variant="outline" onClick={handleSendEmail} className="text-xs sm:text-sm">
+            <Mail className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+            <span className="hidden md:inline">Envoyer</span>
+            <span className="md:hidden">Email</span>
           </Button>
           {showRelanceBadge && (
             <Button 

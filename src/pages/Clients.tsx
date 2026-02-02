@@ -139,18 +139,143 @@ export default function Clients() {
     }
   };
 
-  const handleRelance = (client: Client) => {
-    if (client.email) {
-      window.location.href = `mailto:${client.email}?subject=Relance&body=Bonjour ${client.prenom} ${client.nom},%0D%0A%0D%0ANous vous contactons pour faire un suivi...`;
-      toast({
-        title: "Email de relance",
-        description: "L'application email s'ouvre pour envoyer une relance.",
-      });
-    } else {
+  const handleRelance = async (client: Client) => {
+    if (!client.email) {
       toast({
         variant: "destructive",
         title: "Erreur",
         description: "Ce client n'a pas d'adresse email.",
+      });
+      return;
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Récupérer les factures en retard pour ce client
+      const { data: factures, error: facturesError } = await supabase
+        .from("factures")
+        .select("*")
+        .eq("client_id", client.id)
+        .eq("user_id", user.id)
+        .in("statut", ["Non payée", "En retard"])
+        .order("date_echeance", { ascending: true });
+
+      if (facturesError) {
+        throw facturesError;
+      }
+
+      // Récupérer les informations de l'entreprise
+      const { data: company } = await supabase
+        .from("company_settings")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!factures || factures.length === 0) {
+        toast({
+          title: "Aucune facture en retard",
+          description: "Ce client n'a pas de facture en retard à relancer.",
+        });
+        return;
+      }
+
+      // Calculer les jours de retard pour chaque facture
+      const facturesAvecRetard = factures.map((facture: any) => {
+        if (!facture.date_echeance) return { ...facture, joursRetard: 0 };
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const echeance = new Date(facture.date_echeance);
+        echeance.setHours(0, 0, 0, 0);
+        const diffTime = today.getTime() - echeance.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        return { ...facture, joursRetard: diffDays > 0 ? diffDays : 0 };
+      }).filter((f: any) => f.joursRetard > 0);
+
+      if (facturesAvecRetard.length === 0) {
+        toast({
+          title: "Aucune facture en retard",
+          description: "Ce client n'a pas de facture en retard à relancer.",
+        });
+        return;
+      }
+
+      // Trier par jours de retard (plus urgent en premier)
+      facturesAvecRetard.sort((a: any, b: any) => b.joursRetard - a.joursRetard);
+
+      // Générer le message adapté
+      const factureLaPlusUrgente = facturesAvecRetard[0];
+      const joursRetardMax = factureLaPlusUrgente.joursRetard;
+      const prenom = client.prenom || "";
+      const nomEntreprise = company?.nom_entreprise || "";
+      const emailEntreprise = company?.email || "";
+      const telephoneEntreprise = company?.telephone || "";
+
+      let message = `Bonjour ${prenom},\n\n`;
+
+      // Message adapté selon le niveau de retard le plus élevé
+      if (joursRetardMax <= 7) {
+        message += `Nous vous rappelons que vous avez ${facturesAvecRetard.length} facture${facturesAvecRetard.length > 1 ? "s" : ""} en retard.\n\n`;
+        message += `Détail des factures :\n`;
+        facturesAvecRetard.forEach((f: any) => {
+          message += `- Facture ${f.reference} : ${f.total_ttc?.toFixed(2) || "0.00"} € (${f.joursRetard} jour${f.joursRetard > 1 ? "s" : ""} de retard)\n`;
+        });
+        message += `\nIl s'agit probablement d'un simple oubli. Nous vous serions reconnaissants de bien vouloir procéder au règlement dans les plus brefs délais.\n\n`;
+        message += `N'hésitez pas à nous contacter si vous rencontrez des difficultés ou si vous souhaitez mettre en place un échéancier.\n\n`;
+      } else if (joursRetardMax <= 15) {
+        message += `Vous avez ${facturesAvecRetard.length} facture${facturesAvecRetard.length > 1 ? "s" : ""} en retard.\n\n`;
+        message += `Détail des factures :\n`;
+        facturesAvecRetard.forEach((f: any) => {
+          message += `- Facture ${f.reference} : ${f.total_ttc?.toFixed(2) || "0.00"} € (${f.joursRetard} jour${f.joursRetard > 1 ? "s" : ""} de retard)\n`;
+        });
+        message += `\nNous vous prions de bien vouloir régulariser cette situation dans les plus brefs délais.\n\n`;
+        message += `Si vous avez déjà effectué le paiement, merci de nous en informer. Dans le cas contraire, nous vous remercions de procéder au règlement sans délai.\n\n`;
+      } else if (joursRetardMax <= 30) {
+        message += `Vous avez ${facturesAvecRetard.length} facture${facturesAvecRetard.length > 1 ? "s" : ""} en retard.\n\n`;
+        message += `Détail des factures :\n`;
+        facturesAvecRetard.forEach((f: any) => {
+          message += `- Facture ${f.reference} : ${f.total_ttc?.toFixed(2) || "0.00"} € (${f.joursRetard} jour${f.joursRetard > 1 ? "s" : ""} de retard)\n`;
+        });
+        message += `\nMalgré nos précédents rappels, nous n'avons pas reçu le règlement de ces factures.\n\n`;
+        message += `Nous vous demandons de procéder au règlement immédiatement. À défaut de paiement dans les 7 jours, nous nous verrons contraints d'engager une procédure de recouvrement.\n\n`;
+        message += `Nous restons à votre disposition pour trouver une solution amiable.\n\n`;
+      } else {
+        message += `Vous avez ${facturesAvecRetard.length} facture${facturesAvecRetard.length > 1 ? "s" : ""} en retard.\n\n`;
+        message += `Détail des factures :\n`;
+        facturesAvecRetard.forEach((f: any) => {
+          message += `- Facture ${f.reference} : ${f.total_ttc?.toFixed(2) || "0.00"} € (${f.joursRetard} jour${f.joursRetard > 1 ? "s" : ""} de retard)\n`;
+        });
+        const totalDu = facturesAvecRetard.reduce((sum: number, f: any) => sum + (f.total_ttc || 0), 0);
+        message += `\nTotal dû : ${totalDu.toFixed(2)} €\n\n`;
+        message += `Malgré nos multiples relances, le règlement de ces factures n'a toujours pas été effectué.\n\n`;
+        message += `Cette situation ne peut plus durer. Nous vous demandons de régulariser ces factures dans un délai de 5 jours ouvrés.\n\n`;
+        message += `Passé ce délai, nous nous verrons dans l'obligation de confier le recouvrement de ces créances à un organisme spécialisé, ce qui entraînera des frais supplémentaires à votre charge.\n\n`;
+        message += `Nous espérons que vous comprendrez la nécessité de régulariser cette situation rapidement.\n\n`;
+      }
+
+      message += `Cordialement,\n`;
+      message += `${nomEntreprise}\n`;
+      message += `${emailEntreprise}\n`;
+      message += `${telephoneEntreprise}`;
+
+      const subject = encodeURIComponent(
+        `Relance factures en retard${facturesAvecRetard.length > 1 ? ` (${facturesAvecRetard.length} factures)` : ""}`
+      );
+      const body = encodeURIComponent(message);
+
+      window.location.href = `mailto:${client.email}?subject=${subject}&body=${body}`;
+
+      toast({
+        title: "Email de relance préparé",
+        description: `Relance pour ${facturesAvecRetard.length} facture${facturesAvecRetard.length > 1 ? "s" : ""} en retard.`,
+      });
+    } catch (error: any) {
+      console.error("Erreur relance client:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: error.message || "Impossible de préparer la relance.",
       });
     }
   };

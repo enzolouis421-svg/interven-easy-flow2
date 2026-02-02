@@ -144,7 +144,7 @@ export default function InterventionPreview() {
     }
   };
 
-  const handleSendEmail = () => {
+  const handleSendEmail = async () => {
     if (!client?.email) {
       toast({
         variant: "destructive",
@@ -154,20 +154,87 @@ export default function InterventionPreview() {
       return;
     }
 
-    const subject = encodeURIComponent(`Rapport d'intervention - ${intervention.titre}`);
-    const body = encodeURIComponent(
-      `Bonjour ${client.prenom || ""} ${client.nom},\n\n` +
-      `Veuillez trouver ci-joint le rapport de l'intervention réalisée.\n\n` +
-      `Titre: ${intervention.titre}\n` +
-      `Date: ${intervention.date_intervention ? format(new Date(intervention.date_intervention), "PPP", { locale: fr }) : ""}\n\n` +
-      `N'hésitez pas à me contacter pour toute question.\n\n` +
-      `Cordialement,\n` +
-      `${company?.nom_entreprise || ""}\n` +
-      `${company?.email || ""}\n` +
-      `${company?.telephone || ""}`
-    );
+    try {
+      // Générer le PDF d'abord
+      toast({
+        title: "Génération du PDF",
+        description: "Le PDF du rapport est en cours de génération...",
+      });
 
-    window.location.href = `mailto:${client.email}?subject=${subject}&body=${body}`;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Vous devez être connecté pour envoyer le rapport",
+        });
+        return;
+      }
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      
+      if (!supabaseUrl || !supabaseKey) {
+        throw new Error("Configuration Supabase manquante.");
+      }
+
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/generate-pdf`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: supabaseKey,
+          },
+          body: JSON.stringify({ type: "intervention", id }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de la génération du PDF");
+      }
+
+      const data = await response.json();
+
+      if (data.html) {
+        // Générer le PDF et le télécharger
+        const { generatePDFFromHTML } = await import("@/lib/pdfGenerator");
+        const filename = `intervention-${intervention?.titre?.replace(/[^a-zA-Z0-9]/g, '-') || id}-${new Date().toISOString().split('T')[0]}.pdf`;
+        
+        await generatePDFFromHTML(data.html, filename);
+
+        // Préparer l'email avec instructions pour attacher le PDF
+        const subject = encodeURIComponent(`Rapport d'intervention - ${intervention.titre}`);
+        const body = encodeURIComponent(
+          `Bonjour ${client.prenom || ""} ${client.nom},\n\n` +
+          `Veuillez trouver ci-joint le rapport de l'intervention réalisée.\n\n` +
+          `Titre: ${intervention.titre}\n` +
+          `Date: ${intervention.date_intervention ? format(new Date(intervention.date_intervention), "PPP", { locale: fr }) : ""}\n\n` +
+          `Le PDF a été téléchargé sur votre appareil. Veuillez l'attacher à cet email avant de l'envoyer.\n\n` +
+          `N'hésitez pas à me contacter pour toute question.\n\n` +
+          `Cordialement,\n` +
+          `${company?.nom_entreprise || ""}\n` +
+          `${company?.email || ""}\n` +
+          `${company?.telephone || ""}`
+        );
+
+        // Ouvrir le client mail
+        window.location.href = `mailto:${client.email}?subject=${subject}&body=${body}`;
+
+        toast({
+          title: "PDF généré et email préparé",
+          description: "Le PDF a été téléchargé. Veuillez l'attacher à l'email qui s'ouvre.",
+        });
+      }
+    } catch (error: any) {
+      console.error("Erreur envoi email:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: error.message || "Impossible de générer le PDF pour l'envoi.",
+      });
+    }
   };
 
   if (loading) {
