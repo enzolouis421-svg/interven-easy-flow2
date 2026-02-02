@@ -391,6 +391,7 @@ export default function InterventionDetail() {
 
     if (error) {
       console.error("Erreur lors de la sauvegarde:", error);
+      console.error("Données envoyées:", JSON.stringify(dataToSave, null, 2));
       toast({
         variant: "destructive",
         title: "Erreur",
